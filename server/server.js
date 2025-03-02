@@ -1,6 +1,7 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 
@@ -10,8 +11,8 @@ app.use(express.json({ limit: '10mb' }));
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'soporte2insidemovil@gmail.com',
-    pass: 'rmyb cqyr ctlq nyij',
+    user: process.env.EMAIL_USER, 
+    pass: process.env.EMAIL_PASS, 
   },
 });
 
@@ -36,8 +37,8 @@ app.post('/send-pdf', async (req, res) => {
   console.log('PDF convertido a buffer, tamaño:', pdfBuffer.length);
 
   const mailOptions = {
-    from: 'Soporte Técnico <soporte2insidemovil@gmail.com>',
-    to: 'soporte2insidemovil@gmail.com',
+    from: `Soporte Técnico <${process.env.EMAIL_USER}>`, 
+    to: process.env.EMAIL_USER, 
     subject: `Registro Técnico - ID: ${formId} - ${nombre || 'Sin Nombre'} - ${dni || 'Sin DNI'}`,
     text: `Adjuntamos tu registro de servicio técnico en formato PDF.\n\n` +
           `Cliente: ${nombre || 'No especificado'}\n` +
@@ -56,10 +57,10 @@ app.post('/send-pdf', async (req, res) => {
   try {
     const info = await transporter.sendMail(mailOptions);
     console.log('Correo enviado con éxito para ID:', formId, 'Info:', info);
-    res.status(200).json({ message: 'PDF enviado por correo con éxito' });
+    return res.status(200).json({ message: 'PDF enviado por correo con éxito' });
   } catch (error) {
     console.error('Error enviando correo:', error);
-    res.status(500).json({ error: error.message || 'Error al enviar el PDF por correo' });
+    return res.status(500).json({ error: error.message || 'Error al enviar el PDF por correo' });
   }
 });
 
