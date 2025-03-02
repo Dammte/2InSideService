@@ -384,11 +384,12 @@ function FormContainer() {
     setMessage('Enviando PDF por correo...');
 
     try {
+      console.log('API URL cargada:', import.meta.env.VITE_API_URL);
       console.log('Generando PDF interno...');
       const formId = `ST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const doc = generateInternalPDF(formId);
       const pdfBlob = doc.output('blob');
-      console.log('PDF interno generado, FormID:', formId);
+      console.log('PDF interno generado, FormID:', formId, 'Tamaño del Blob:', pdfBlob.size);
 
       const pdfBase64: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -410,7 +411,7 @@ function FormContainer() {
       console.log('PDF convertido a base64, longitud:', pdfBase64.length);
 
       console.log('Enviando solicitud al backend...');
-      const response = await fetch('${process.env.REACT_APP_API_URL}/send-pdf', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/send-pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -424,12 +425,21 @@ function FormContainer() {
         }),
       });
 
-      console.log('Respuesta recibida del backend, status:', response.status);
-      const result = await response.json();
-      console.log('Resultado del backend:', result);
+      console.log('Estado de la respuesta:', response.status, response.statusText);
+      const responseText = await response.text();
+      console.log('Respuesta cruda del backend:', responseText);
 
       if (!response.ok) {
-        throw new Error(result.error || 'Error en el servidor');
+        throw new Error(`Error del servidor: ${response.status} - ${responseText || 'Sin detalles'}`);
+      }
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('Respuesta parseada como JSON:', result);
+      } catch (jsonError) {
+        console.error('Error al parsear JSON:', jsonError);
+        throw new Error(`Respuesta no válida del backend: ${responseText}`);
       }
 
       setMessage(`PDF enviado por correo con éxito (ID: ${formId})`);
