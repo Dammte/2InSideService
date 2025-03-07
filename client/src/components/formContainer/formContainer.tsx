@@ -1,7 +1,10 @@
 import './formContainer.css';
 import React, { useState, useRef } from 'react';
 import PatternLock from '../patternComponent/patternComponent';
-import { FaUser, FaPhone, FaEnvelope, FaLock, FaMobile, FaKey, FaEdit, FaMoneyBillWave } from 'react-icons/fa';
+import {
+  FaUser, FaPhone, FaEnvelope, FaLock, FaMobile, FaKey,
+  FaEdit, FaMoneyBillWave, FaRedo, FaPrint
+} from 'react-icons/fa';
 import jsPDF from 'jspdf';
 import logoImg from '../../assets/logo.webp';
 import logoImgSinFondo from '../../assets/logoSinFondo.webp';
@@ -28,6 +31,7 @@ interface FormData {
 interface ProcessingState {
   print: boolean;
   send: boolean;
+  sendToClient: boolean; // Nuevo estado para el envío al cliente
 }
 
 interface SectionItem {
@@ -56,7 +60,7 @@ function FormContainer() {
   });
 
   const [pattern, setPattern] = useState<number[]>([]);
-  const [isProcessing, setIsProcessing] = useState<ProcessingState>({ print: false, send: false });
+  const [isProcessing, setIsProcessing] = useState<ProcessingState>({ print: false, send: false, sendToClient: false });
   const [message, setMessage] = useState<string>('');
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -102,6 +106,7 @@ function FormContainer() {
     doc.text(`Fecha: ${today}`, titleX, y + 18);
     doc.setFontSize(8);
     doc.text(`ID: ${formId}`, titleX, y + 24);
+
     y += logoHeight + 15;
 
     const section = (title: string, content: SectionItem[]) => {
@@ -179,6 +184,8 @@ function FormContainer() {
     });
 
     y += 8;
+
+    const startYForPoliciesAndSAT = y;
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.text("Políticas de Servicio", margin, y);
@@ -194,9 +201,31 @@ function FormContainer() {
       "Revisión se cobrará si no se acepta la reparación.",
     ];
     policies.forEach((policy: string) => {
-      doc.text("• " + policy, margin, y);
+      const lines = doc.splitTextToSize("• " + policy, (pageWidth - margin * 2) / 2);
+      doc.text(lines, margin, y);
+      y += lines.length * 5;
+    });
+
+    y = startYForPoliciesAndSAT;
+    const satData = [
+      "Alain Garcia Orive - 72397028C",
+      "Julian Garcia Sainz de Baranda S/N",
+      "09500 Medina de Pomar (Burgos)",
+    ];
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Datos del S.A.T.", pageWidth - margin, y, { align: "right" });
+    y += 6;
+    doc.setFontSize(8);
+    doc.setTextColor(102, 102, 102);
+    satData.forEach((line) => {
+      doc.text(line, pageWidth - margin, y, { align: "right" });
       y += 5;
     });
+
+    const policiesHeight = policies.length * 5 + 10;
+    const satDataHeight = satData.length * 5 + 10;
+    y = startYForPoliciesAndSAT + Math.max(policiesHeight, satDataHeight);
 
     doc.setFontSize(8);
     doc.setTextColor(153, 153, 153);
@@ -208,23 +237,19 @@ function FormContainer() {
 
   const generateInternalPDF = (formId: string): jsPDF => {
     const doc = new jsPDF();
-
     doc.setFont("helvetica", "normal");
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
     let y = margin;
-
     const logoWidth = 50;
     const logoHeight = logoWidth * (66 / 152);
     doc.addImage(logoImg, "PNG", margin, y, logoWidth, logoHeight);
-
     doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(51, 51, 51);
     const titleX = margin + logoWidth + 10;
     doc.text("Registro Interno de Servicio Técnico", titleX, y + 10);
-
     const today = new Date().toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
     doc.setFontSize(10);
     doc.setTextColor(102, 102, 102);
@@ -232,7 +257,6 @@ function FormContainer() {
     doc.setFontSize(8);
     doc.text(`ID: ${formId}`, titleX, y + 24);
     y += logoHeight + 15;
-
     const section = (title: string, content: SectionItem[]) => {
       doc.setFillColor(240, 240, 240);
       doc.rect(margin, y - 5, pageWidth - margin * 2, 10, "F");
@@ -240,13 +264,11 @@ function FormContainer() {
       doc.setFont("helvetica", "bold");
       doc.setTextColor(51, 51, 51);
       doc.text(title, margin + 5, y);
-
       y += 2;
       doc.setDrawColor(51, 51, 51);
       doc.setLineWidth(0.5);
       doc.line(margin + 5, y, margin + 5 + (pageWidth - margin * 2) * 0.7, y);
       y += 10;
-
       doc.setFontSize(11);
       doc.setTextColor(51, 51, 51);
       content.forEach((item: SectionItem) => {
@@ -264,14 +286,12 @@ function FormContainer() {
       });
       y += 4;
     };
-
     section("Información del Cliente", [
       { label: "DNI:", value: formData.DNI },
       { label: "Nombre:", value: formData.Nombre },
       { label: "Teléfono:", value: formData.Telefono },
       { label: "Tel. Alternativo:", value: formData.AltTelefono },
     ]);
-
     section("Información del Dispositivo", [
       { label: "Marca:", value: formData.Marca },
       { label: "Modelo:", value: formData.Modelo },
@@ -281,11 +301,9 @@ function FormContainer() {
       { label: "Código:", value: formData.Codigo },
       { label: "Patrón de Desbloqueo:", value: pattern.length > 0 ? pattern.join('-') : "No especificado" },
     ]);
-
     section("Estado Actual", [{ label: "", value: formData.DetallesEstadoActual }]);
     section("Soporte Técnico", [{ label: "", value: formData.DetallesSoporteTecnico }]);
     section("Observaciones", [{ label: "", value: formData.Observaciones }]);
-
     y += 4;
     doc.setFillColor(240, 240, 240);
     doc.rect(margin, y - 5, pageWidth - margin * 2, 10, "F");
@@ -297,13 +315,11 @@ function FormContainer() {
     doc.setDrawColor(51, 51, 51);
     doc.line(margin + 5, y, margin + 5 + (pageWidth - margin * 2) * 0.7, y);
     y += 10;
-
     const budgetItems: SectionItem[] = [
       { label: "Costo:", value: formData.Costo ? `${formData.Costo} €` : "0.00 €" },
       { label: "Abono:", value: formData.Abono ? `${formData.Abono} €` : "0.00 €" },
       { label: "Restante:", value: formData.Restante ? `${formData.Restante} €` : "0.00 €" },
     ];
-
     budgetItems.forEach((item: SectionItem) => {
       doc.setFont("helvetica", "bold");
       doc.text(item.label, margin + 5, y);
@@ -311,7 +327,6 @@ function FormContainer() {
       doc.text(item.value, pageWidth - margin - 10, y, { align: "right" });
       y += 6;
     });
-
     y += 8;
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
@@ -330,12 +345,10 @@ function FormContainer() {
       doc.text("• " + policy, margin, y);
       y += 5;
     });
-
     doc.setFontSize(8);
     doc.setTextColor(153, 153, 153);
     doc.setFont("helvetica", "italic");
     doc.text("Gracias por confiar en nuestro servicio técnico", pageWidth / 2, pageHeight - 10, { align: "center" });
-
     return doc;
   };
 
@@ -345,16 +358,13 @@ function FormContainer() {
       setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
       return;
     }
-
     setIsProcessing((prev) => ({ ...prev, print: true }));
     setMessage('Generando PDF para impresión...');
-
     try {
       const formId = `ST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const doc = generatePDF(formId);
       const pdfBlob = doc.output('blob');
       const pdfUrl = URL.createObjectURL(pdfBlob);
-
       const printWindow = window.open(pdfUrl);
       if (printWindow) {
         printWindow.onload = () => {
@@ -374,15 +384,12 @@ function FormContainer() {
 
   const handleSendEmail = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-
     if (!formData.Nombre || !formData.Telefono) {
       setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
       return;
     }
-
     setIsProcessing((prev) => ({ ...prev, send: true }));
     setMessage('Enviando PDF por correo...');
-
     try {
       console.log('API URL cargada:', import.meta.env.VITE_API_URL);
       console.log('Generando PDF interno...');
@@ -390,7 +397,6 @@ function FormContainer() {
       const doc = generateInternalPDF(formId);
       const pdfBlob = doc.output('blob');
       console.log('PDF interno generado, FormID:', formId, 'Tamaño del Blob:', pdfBlob.size);
-
       const pdfBase64: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -409,7 +415,6 @@ function FormContainer() {
         reader.readAsDataURL(pdfBlob);
       });
       console.log('PDF convertido a base64, longitud:', pdfBase64.length);
-
       console.log('Enviando solicitud al backend...');
       const response = await fetch(`${import.meta.env.VITE_API_URL}/send-pdf`, {
         method: 'POST',
@@ -424,15 +429,12 @@ function FormContainer() {
           telefono: formData.Telefono,
         }),
       });
-
       console.log('Estado de la respuesta:', response.status, response.statusText);
       const responseText = await response.text();
       console.log('Respuesta cruda del backend:', responseText);
-
       if (!response.ok) {
         throw new Error(`Error del servidor: ${response.status} - ${responseText || 'Sin detalles'}`);
       }
-
       let result;
       try {
         result = JSON.parse(responseText);
@@ -441,7 +443,6 @@ function FormContainer() {
         console.error('Error al parsear JSON:', jsonError);
         throw new Error(`Respuesta no válida del backend: ${responseText}`);
       }
-
       setMessage(`PDF enviado por correo con éxito (ID: ${formId})`);
     } catch (error: unknown) {
       console.error('Error en envío de correo:', error);
@@ -449,6 +450,82 @@ function FormContainer() {
       setMessage(`Error al enviar el PDF por correo: ${errorMessage}`);
     } finally {
       setIsProcessing((prev) => ({ ...prev, send: false }));
+    }
+  };
+
+  const handleSendEmailToClient = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (!formData.Nombre || !formData.Telefono) {
+      setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
+      return;
+    }
+    if (!formData.Correo) {
+      setMessage('Por favor, ingresa el correo del cliente para enviar el PDF');
+      return;
+    }
+    setIsProcessing((prev) => ({ ...prev, sendToClient: true }));
+    setMessage('Enviando PDF al cliente por correo...');
+    try {
+      console.log('API URL cargada:', import.meta.env.VITE_API_URL);
+      console.log('Generando PDF para el cliente...');
+      const formId = `ST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const doc = generatePDF(formId);
+      const pdfBlob = doc.output('blob');
+      console.log('PDF generado, FormID:', formId, 'Tamaño del Blob:', pdfBlob.size);
+      const pdfBase64: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          console.log('FileReader onload ejecutado');
+          const result = reader.result;
+          if (typeof result === 'string') {
+            resolve(result.split(',')[1]);
+          } else {
+            reject(new Error('El resultado del FileReader no es una cadena'));
+          }
+        };
+        reader.onerror = () => {
+          console.error('Error en FileReader:', reader.error);
+          reject(new Error('Error al leer el Blob: ' + (reader.error?.message || 'Desconocido')));
+        };
+        reader.readAsDataURL(pdfBlob);
+      });
+      console.log('PDF convertido a base64, longitud:', pdfBase64.length);
+      console.log('Enviando solicitud al backend para el cliente...');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/send-pdf-to-client`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pdfBase64,
+          formId,
+          nombre: formData.Nombre,
+          dni: formData.DNI,
+          telefono: formData.Telefono,
+          email: formData.Correo,
+        }),
+      });
+      console.log('Estado de la respuesta:', response.status, response.statusText);
+      const responseText = await response.text();
+      console.log('Respuesta cruda del backend:', responseText);
+      if (!response.ok) {
+        throw new Error(`Error del servidor: ${response.status} - ${responseText || 'Sin detalles'}`);
+      }
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('Respuesta parseada como JSON:', result);
+      } catch (jsonError) {
+        console.error('Error al parsear JSON:', jsonError);
+        throw new Error(`Respuesta no válida del backend: ${responseText}`);
+      }
+      setMessage(`PDF enviado al cliente por correo con éxito (ID: ${formId})`);
+    } catch (error: unknown) {
+      console.error('Error en envío de correo al cliente:', error);
+      const errorMessage = (error as Error).message || 'Error desconocido al enviar el PDF al cliente';
+      setMessage(`Error al enviar el PDF al cliente por correo: ${errorMessage}`);
+    } finally {
+      setIsProcessing((prev) => ({ ...prev, sendToClient: false }));
     }
   };
 
@@ -609,26 +686,34 @@ function FormContainer() {
             type="button"
             className="print-button"
             onClick={handlePrint}
-            disabled={isProcessing.print || isProcessing.send}
+            disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient}
           >
-            {isProcessing.print ? 'Imprimiendo...' : 'Imprimir'}
+            <FaPrint style={{ marginRight: '8px' }} /> {isProcessing.print ? 'Imprimiendo...' : 'Imprimir'}
           </button>
           <button
             type="button"
             className="send-button"
             onClick={handleSendEmail}
-            disabled={isProcessing.print || isProcessing.send}
+            disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient}
           >
-            {isProcessing.send ? 'Enviando...' : 'Enviar por Correo'}
+            <FaEnvelope style={{ marginRight: '8px' }} /> {isProcessing.send ? 'Enviando...' : 'Enviar por Correo'}
+          </button>
+          <button
+            type="button"
+            className="send-client-button"
+            onClick={handleSendEmailToClient}
+            disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient}
+          >
+            <FaEnvelope style={{ marginRight: '8px' }} /> {isProcessing.sendToClient ? 'Enviando...' : 'Enviar por Correo al Cliente'}
           </button>
         </div>
         <button
           type="button"
           className="reset-button"
           onClick={handleReset}
-          disabled={isProcessing.print || isProcessing.send}
+          disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient}
         >
-          Limpiar Formulario
+          <FaRedo style={{ marginRight: '8px' }} /> Limpiar Formulario
         </button>
         <p>
           Desarrollado por{' '}
