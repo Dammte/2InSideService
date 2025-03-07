@@ -31,7 +31,7 @@ interface FormData {
 interface ProcessingState {
   print: boolean;
   send: boolean;
-  sendToClient: boolean; // Nuevo estado para el envío al cliente
+  sendToClient: boolean;
 }
 
 interface SectionItem {
@@ -183,7 +183,12 @@ function FormContainer() {
       y += 6;
     });
 
-    y += 8;
+    y += -10;
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("No de Factura:", margin + 5, y);
+
+    y += 15;
 
     const startYForPoliciesAndSAT = y;
     doc.setFontSize(10);
@@ -322,11 +327,16 @@ function FormContainer() {
     ];
     budgetItems.forEach((item: SectionItem) => {
       doc.setFont("helvetica", "bold");
-      doc.text(item.label, margin + 5, y);
+      doc.text(item.label, pageWidth - margin - 70, y);
       doc.setFont("helvetica", "normal");
       doc.text(item.value, pageWidth - margin - 10, y, { align: "right" });
       y += 6;
     });
+    y += 2;
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("No de Factura:", margin + 5, y);
+
     y += 8;
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
