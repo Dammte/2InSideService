@@ -1,6 +1,7 @@
 import './formContainer.css';
 import React, { useState, useRef } from 'react';
 import PatternLock from '../patternComponent/patternComponent';
+import PhotoCapture from '../photoCapture/photoCapture'; // Importamos el nuevo componente
 import {
   FaUser, FaPhone, FaEnvelope, FaLock, FaMobile, FaKey,
   FaEdit, FaMoneyBillWave, FaRedo, FaPrint
@@ -62,6 +63,7 @@ function FormContainer() {
   const [pattern, setPattern] = useState<number[]>([]);
   const [isProcessing, setIsProcessing] = useState<ProcessingState>({ print: false, send: false, sendToClient: false });
   const [message, setMessage] = useState<string>('');
+  const [photos, setPhotos] = useState<string[]>([]); // Estado para las fotos en base64
   const formRef = useRef<HTMLFormElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -81,9 +83,13 @@ function FormContainer() {
     setPattern(newPattern);
   };
 
+  const handlePhotosChange = (newPhotos: string[]) => {
+    setPhotos(newPhotos);
+    setMessage(`Fotos actualizadas: ${newPhotos.length} capturada(s)`);
+  };
+
   const generatePDF = (formId: string): jsPDF => {
     const doc = new jsPDF();
-
     doc.setFont("helvetica", "normal");
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -399,7 +405,7 @@ function FormContainer() {
       return;
     }
     setIsProcessing((prev) => ({ ...prev, send: true }));
-    setMessage('Enviando PDF por correo...');
+    setMessage('Enviando PDF y fotos por correo...');
     try {
       console.log('API URL cargada:', import.meta.env.VITE_API_URL);
       console.log('Generando PDF interno...');
@@ -425,7 +431,7 @@ function FormContainer() {
         reader.readAsDataURL(pdfBlob);
       });
       console.log('PDF convertido a base64, longitud:', pdfBase64.length);
-      console.log('Enviando solicitud al backend...');
+      console.log('Enviando solicitud al backend con fotos...');
       const response = await fetch(`${import.meta.env.VITE_API_URL}/send-pdf`, {
         method: 'POST',
         headers: {
@@ -433,6 +439,7 @@ function FormContainer() {
         },
         body: JSON.stringify({
           pdfBase64,
+          photos, // Enviar las fotos capturadas por PhotoCapture
           formId,
           nombre: formData.Nombre,
           dni: formData.DNI,
@@ -453,11 +460,11 @@ function FormContainer() {
         console.error('Error al parsear JSON:', jsonError);
         throw new Error(`Respuesta no válida del backend: ${responseText}`);
       }
-      setMessage(`PDF enviado por correo con éxito (ID: ${formId})`);
+      setMessage(`PDF y ${photos.length} foto(s) enviados por correo con éxito (ID: ${formId})`);
     } catch (error: unknown) {
       console.error('Error en envío de correo:', error);
-      const errorMessage = (error as Error).message || 'Error desconocido al enviar el PDF';
-      setMessage(`Error al enviar el PDF por correo: ${errorMessage}`);
+      const errorMessage = (error as Error).message || 'Error desconocido al enviar el PDF y fotos';
+      setMessage(`Error al enviar el PDF y fotos por correo: ${errorMessage}`);
     } finally {
       setIsProcessing((prev) => ({ ...prev, send: false }));
     }
@@ -558,6 +565,8 @@ function FormContainer() {
       Abono: '',
       Restante: '',
     });
+    setPhotos([]); // Reiniciar las fotos
+    setPattern([]);
     setMessage('');
   };
 
@@ -655,6 +664,11 @@ function FormContainer() {
             <label className="input-label"><FaEdit /> Observaciones</label>
             <textarea name="Observaciones" value={formData.Observaciones} onChange={handleChange} />
           </div>
+        </section>
+
+        <section className="section photos">
+          <h2 className="section-title">Fotos del Dispositivo</h2>
+          <PhotoCapture onPhotosChange={handlePhotosChange} />
         </section>
 
         <section className="section budget">

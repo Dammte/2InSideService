@@ -26,41 +26,64 @@ transporter.verify((error, success) => {
 
 app.post('/send-pdf', async (req, res) => {
   console.log('Solicitud recibida en /send-pdf:', req.body);
-  const { pdfBase64, formId, nombre, dni, telefono } = req.body;
+  const { pdfBase64, photos = [], formId, nombre, dni, telefono } = req.body;
 
   if (!pdfBase64 || !formId) {
     console.error('Datos inválidos o faltantes:', { pdfBase64, formId });
     return res.status(400).json({ error: 'Faltan datos requeridos (pdfBase64 o formId)' });
   }
 
-  const pdfBuffer = Buffer.from(pdfBase64, 'base64');
-  console.log('PDF convertido a buffer, tamaño:', pdfBuffer.length);
+  try {
+    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+    console.log('PDF convertido a buffer, tamaño:', pdfBuffer.length);
 
-  const mailOptions = {
-    from: `Soporte Técnico <${process.env.EMAIL_USER}>`,
-    to: process.env.EMAIL_USER,
-    subject: `Registro Técnico - ID: ${formId} - ${nombre || 'Sin Nombre'} - ${dni || 'Sin DNI'}`,
-    text: `Adjuntamos tu registro de servicio técnico en formato PDF.\n\n` +
-          `Cliente: ${nombre || 'No especificado'}\n` +
-          `DNI: ${dni || 'No especificado'}\n` +
-          `Teléfono: ${telefono || 'No especificado'}\n` +
-          `ID Registro: ${formId}`,
-    attachments: [
+    const photoAttachments = photos.map((photo, index) => {
+      try {
+        const photoBuffer = Buffer.from(photo, 'base64');
+        console.log(`Foto ${index + 1} convertida a buffer, tamaño:`, photoBuffer.length);
+        return {
+          filename: `foto-${formId}-${index + 1}.jpg`,
+          content: photoBuffer,
+          contentType: 'image/jpeg',
+        };
+      } catch (error) {
+        console.error(`Error al procesar la foto ${index + 1}:`, error);
+        throw new Error(`Formato inválido en la foto ${index + 1}`);
+      }
+    });
+
+    const attachments = [
       {
         filename: `servicio-${formId}.pdf`,
         content: pdfBuffer,
         contentType: 'application/pdf',
       },
-    ],
-  };
+      ...photoAttachments,
+    ];
 
-  try {
+    const mailOptions = {
+      from: `Soporte Técnico <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER, 
+      subject: `Registro Técnico - ID: ${formId} - ${nombre || 'Sin Nombre'} - ${dni || 'Sin DNI'}`,
+      text: `Adjuntamos tu registro de servicio técnico en formato PDF junto con las fotos del dispositivo.\n\n` +
+            `Cliente: ${nombre || 'No especificado'}\n` +
+            `DNI: ${dni || 'No especificado'}\n` +
+            `Teléfono: ${telefono || 'No especificado'}\n` +
+            `ID Registro: ${formId}\n` +
+            `Fotos adjuntas: ${photos.length}`,
+      attachments,
+    };
+
     const info = await transporter.sendMail(mailOptions);
     console.log('Correo enviado con éxito para ID:', formId, 'Info:', info);
-    return res.status(200).json({ message: 'PDF enviado por correo con éxito' });
+    return res.status(200).json({
+      message: `PDF y ${photos.length} foto(s) enviados por correo con éxito`,
+    });
   } catch (error) {
     console.error('Error enviando correo:', error);
-    return res.status(500).json({ error: error.message || 'Error al enviar el PDF por correo' });
+    return res.status(500).json({
+      error: error.message || 'Error al enviar el PDF y fotos por correo',
+    });
   }
 });
 
@@ -70,44 +93,51 @@ app.post('/send-pdf-to-client', async (req, res) => {
 
   if (!pdfBase64 || !formId || !email) {
     console.error('Datos inválidos o faltantes:', { pdfBase64, formId, email });
-    return res.status(400).json({ error: 'Faltan datos requeridos (pdfBase64, formId o email)' });
+    return res.status(400).json({
+      error: 'Faltan datos requeridos (pdfBase64, formId o email)',
+    });
   }
 
-  const pdfBuffer = Buffer.from(pdfBase64, 'base64');
-  console.log('PDF convertido a buffer, tamaño:', pdfBuffer.length);
-
-  const mailOptions = {
-    from: `Soporte Técnico <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: `Tu Comprobante de Servicio Técnico - ID: ${formId}`,
-    text: `Hola ${nombre || 'Cliente'},\n\n` +
-          `Adjuntamos tu comprobante de servicio técnico en formato PDF.\n\n` +
-          `Detalles:\n` +
-          `Cliente: ${nombre || 'No especificado'}\n` +
-          `DNI: ${dni || 'No especificado'}\n` +
-          `Teléfono: ${telefono || 'No especificado'}\n` +
-          `ID Registro: ${formId}\n\n` +
-          `Gracias por confiar en nosotros.`,
-    attachments: [
-      {
-        filename: `comprobante-${formId}.pdf`,
-        content: pdfBuffer,
-        contentType: 'application/pdf',
-      },
-    ],
-  };
-
   try {
+    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+    console.log('PDF convertido a buffer, tamaño:', pdfBuffer.length);
+
+    const mailOptions = {
+      from: `Soporte Técnico <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `Tu Comprobante de Servicio Técnico - ID: ${formId}`,
+      text: `Hola ${nombre || 'Cliente'},\n\n` +
+            `Adjuntamos tu comprobante de servicio técnico en formato PDF.\n\n` +
+            `Detalles:\n` +
+            `Cliente: ${nombre || 'No especificado'}\n` +
+            `DNI: ${dni || 'No especificado'}\n` +
+            `Teléfono: ${telefono || 'No especificado'}\n` +
+            `ID Registro: ${formId}\n\n` +
+            `Gracias por confiar en nosotros.`,
+      attachments: [
+        {
+          filename: `comprobante-${formId}.pdf`,
+          content: pdfBuffer,
+          contentType: 'application/pdf',
+        },
+      ],
+    };
+
     const info = await transporter.sendMail(mailOptions);
     console.log('Correo enviado con éxito a:', email, 'para ID:', formId, 'Info:', info);
-    return res.status(200).json({ message: `PDF enviado por correo a ${email} con éxito` });
+    return res.status(200).json({
+      message: `PDF enviado por correo a ${email} con éxito`,
+    });
   } catch (error) {
     console.error('Error enviando correo al cliente:', error);
-    return res.status(500).json({ error: error.message || 'Error al enviar el PDF al cliente por correo' });
+    return res.status(500).json({
+      error: error.message || 'Error al enviar el PDF al cliente por correo',
+    });
   }
 });
 
 const PORT = process.env.PORT || 3001;
+const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
