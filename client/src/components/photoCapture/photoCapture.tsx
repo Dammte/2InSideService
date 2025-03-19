@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { PiCameraFill } from 'react-icons/pi';
+import { PiCameraFill, PiCameraSlashFill } from 'react-icons/pi';
+import './PhotoCapture.css';
 
 interface PhotoCaptureProps {
   onPhotosChange: (photos: string[]) => void;
@@ -9,7 +10,7 @@ function PhotoCapture({ onPhotosChange }: PhotoCaptureProps) {
   const [photos, setPhotos] = useState<string[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [takephoto, setTakephoto] = useState(false)
+  const [takephoto, setTakephoto] = useState(false);
 
   const startCamera = async () => {
     try {
@@ -27,11 +28,10 @@ function PhotoCapture({ onPhotosChange }: PhotoCaptureProps) {
   const cameraPhoto = () => {
     if (!takephoto === false) {
       takePhoto();
-    }
-    else {
+    } else {
       startCamera();
     }
-  }
+  };
 
   const takePhoto = () => {
     if (videoRef.current && canvasRef.current) {
@@ -49,51 +49,34 @@ function PhotoCapture({ onPhotosChange }: PhotoCaptureProps) {
   };
 
   return (
-    <div className="element-container full-width" style={{ textAlign: 'center', padding: '20px' }}>
-
-      <div
-        style={{
-          border: '2px solid #ccc',
-          width: '320px',
-          height: '240px',
-          margin: '0 auto',
-          overflow: 'hidden',
-          position: 'relative',
-          backgroundColor: '#f0f0f0',
-        }}
-      >
-        <video
-          ref={videoRef}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
-        />
+    <div className="element-container full-width">
+      <div className="video-wrapper">
+        <video ref={videoRef} />
+        {!takephoto && (
+          <div className="camera-off-overlay">
+            <PiCameraSlashFill size={80} />
+          </div>
+        )}
       </div>
 
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
-      <div className="camera-controls" style={{ marginBottom: '20px' }}>
-        <button className='take-photo' type="button" onClick={cameraPhoto}> <PiCameraFill /></button>
+      <div className="camera-controls">
+        <button className="take-photo" type="button" onClick={cameraPhoto}>
+          <PiCameraFill size={30} />
+        </button>
       </div>
 
       {photos.length > 0 && (
-        <div className="photo-preview" style={{ marginTop: '20px' }}>
+        <div className="photo-preview">
           <h3>Fotos Capturadas:</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div className="photos-grid">
             {photos.map((photo, index) => (
               <img
                 key={index}
                 src={`data:image/jpeg;base64,${photo}`}
                 alt={`Foto ${index + 1}`}
-                style={{
-                  width: '100px',
-                  height: '75px',
-                  margin: '5px',
-                  border: '1px solid #ccc',
-                  objectFit: 'cover',
-                }}
+                className="photo-item"
               />
             ))}
           </div>

@@ -1,16 +1,111 @@
-.camera-controls {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+.element-container.full-width {
+  text-align: center;
+  padding: 20px;
 }
 
-.photo-preview {
+.video-wrapper {
+  border: 2px solid #ccc;
+  width: 320px;
+  height: 240px;
+  margin: 0 auto;
+  overflow: hidden;
+  position: relative;
+  background-color: #f0f0f0;
+}
+
+.video-wrapper video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.camera-off-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  background-color: #f0f0f0;
+  z-index: 1;
+}
+
+.camera-controls {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
   margin-top: 10px;
 }
 
-.take-photo{
-  border-radius: 40%;
+.take-photo {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.take-photo::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+}
+
+.take-photo:hover::before {
+  width: 150px;
+  height: 150px;
+}
+
+.take-photo:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.take-photo:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.take-photo svg {
+  z-index: 1;
+}
+
+.photo-preview {
+  margin-top: 20px;
+}
+
+.photos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.photo-item {
+  width: 100px;
+  height: 75px;
+  margin: 5px;
+  border: 1px solid #ccc;
+  object-fit: cover;
 }
