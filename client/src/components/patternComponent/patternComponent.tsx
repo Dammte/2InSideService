@@ -158,7 +158,6 @@ const PatternLock: React.FC<PatternLockProps> = ({ onPatternComplete, pattern })
           Reiniciar Patrón
         </button>
       </div>
-      {/* <p className="pattern-text">Patrón: {selectedPattern.length > 0 ? selectedPattern.join(' → ') : 'No seleccionado'}</p> */}
     </div>
   );
 };

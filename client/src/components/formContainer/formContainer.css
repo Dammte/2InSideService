@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
-/* Contenedor General */
 .form-wrapper {
   display: flex;
   justify-content: center;
@@ -20,17 +19,38 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-/* Header */
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.header-logo {
+  border-radius: 10px;
+  width: 150px;
+  height: auto;
+  transition: transform 0.3s ease;
+}
+
+.header-logo:hover {
+  transform: scale(1.05);
+}
+
 .form-header {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 600;
   color: #d4af37;
   text-align: center;
-  margin-bottom: 40px;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #d4af37, #b88b1e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0;
 }
 
-/* Secciones */
 .section {
   margin-bottom: 30px;
   padding: 30px;
@@ -53,7 +73,6 @@
   padding-bottom: 8px;
 }
 
-/* Filas para Inputs */
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -61,7 +80,6 @@
   margin-bottom: 20px;
 }
 
-/* Contenedores de Elementos */
 .element-container {
   display: flex;
   flex-direction: column;
@@ -78,7 +96,6 @@
   align-items: center;
 }
 
-/* Etiquetas e Inputs */
 .input-label {
   display: flex;
   align-items: center;
@@ -123,7 +140,6 @@ textarea {
   resize: vertical;
 }
 
-/* Políticas */
 .policies-container {
   background-color: #eceff1;
   padding: 20px;
@@ -170,25 +186,23 @@ textarea {
   visibility: visible;
 }
 
-/* Grupo de Botones */
 .button-group {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-  gap: 20px; 
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
   margin-top: 30px;
-  justify-items: center; 
-  width: 100%; 
+  justify-items: center;
+  width: 100%;
 }
 
-/* Estilo base para todos los botones */
 .print-button,
 .send-button,
 .send-client-button,
 .reset-button {
   position: relative;
   width: 100%;
-  padding: 16px; 
-  font-size: 16px; 
+  padding: 16px;
+  font-size: 16px;
   font-weight: 600;
   font-family: 'Poppins', sans-serif;
   border: none;
@@ -197,14 +211,13 @@ textarea {
   transition: all 0.3s ease;
   color: #fff;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  min-height: 60px; 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
 }
 
-/* Ajuste para iconos dentro de los botones */
 .print-button svg,
 .send-button svg,
 .send-client-button svg,
@@ -213,16 +226,14 @@ textarea {
   vertical-align: middle;
 }
 
-/* Efecto hover para todos los botones */
 .print-button:hover,
 .send-button:hover,
 .send-client-button:hover,
 .reset-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); 
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Estado disabled para todos los botones */
 .print-button:disabled,
 .send-button:disabled,
 .send-client-button:disabled,
@@ -233,38 +244,34 @@ textarea {
   box-shadow: none;
 }
 
-/* Botón Imprimir  */
 .print-button {
-  background: linear-gradient(135deg, #d4af37, #b88b1e); 
+  background: linear-gradient(135deg, #d4af37, #b88b1e);
 }
 
 .print-button:hover:not(:disabled) {
   background: linear-gradient(135deg, #e6c84c, #c99d2f);
 }
 
-/* Botón Enviar por Correo (Send) */
 .send-button {
-  background: linear-gradient(135deg, #2980b9, #1b5e91); 
+  background: linear-gradient(135deg, #2980b9, #1b5e91);
 }
 
 .send-button:hover:not(:disabled) {
   background: linear-gradient(135deg, #3498db, #2471a3);
 }
 
-/* Botón Enviar por Correo al Cliente */
 .send-client-button {
-  background: linear-gradient(135deg, #27ae60, #1c8c4b); 
+  background: linear-gradient(135deg, #27ae60, #1c8c4b);
 }
 
 .send-client-button:hover:not(:disabled) {
   background: linear-gradient(135deg, #2ecc71, #219653);
 }
 
-/* Botón Limpiar Formulario*/
 .reset-button {
-  background: linear-gradient(135deg, #e74c3c, #c0392b); 
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
   margin-top: 20px;
-  width: 100%; 
+  width: 100%;
   padding: 16px;
   font-size: 16px;
   min-height: 60px;
@@ -295,13 +302,33 @@ textarea {
 
 /* Diseño Responsivo */
 @media (max-width: 768px) {
+  .form-wrapper {
+    padding: 15px;
+  }
+
   .form-container {
     padding: 20px;
+    border-radius: 15px;
+  }
+
+  .form-header {
+    font-size: 28px;
+  }
+
+  .section {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: 18px;
+    margin-bottom: 15px;
   }
 
   .row {
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
+    margin-bottom: 15px;
   }
 
   .element-container {
@@ -309,12 +336,31 @@ textarea {
     width: 100%;
   }
 
-  .form-header {
-    font-size: 28px;
+  .input-label {
+    font-size: 14px;
   }
 
-  .section-title {
-    font-size: 20px;
+  input,
+  textarea {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  textarea {
+    min-height: 80px;
+  }
+
+  .policies-list {
+    font-size: 13px;
+  }
+
+  .policies-list li {
+    padding-left: 25px;
+    margin-bottom: 10px;
+  }
+
+  .policies-list li::before {
+    font-size: 16px;
   }
 
   .button-group {
@@ -326,38 +372,122 @@ textarea {
   .send-button,
   .send-client-button,
   .reset-button {
-    padding: 14px;
-    font-size: 15px;
-    min-height: 50px; 
+    padding: 12px;
+    font-size: 14px;
+    min-height: 50px;
+  }
+
+  .header-container {
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .header-logo {
+    width: 120px;
   }
 }
 
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 40px;
-  justify-content: center;
+@media (max-width: 480px) {
+  .form-wrapper {
+    padding: 10px;
+  }
+
+  .form-container {
+    padding: 15px;
+    border-radius: 10px;
+  }
+
+  .form-header {
+    font-size: 24px;
+  }
+
+  .section {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .row {
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .input-label {
+    font-size: 13px;
+  }
+
+  input,
+  textarea {
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .policies-list {
+    font-size: 12px;
+  }
+
+  .policies-list li {
+    padding-left: 20px;
+    margin-bottom: 8px;
+  }
+
+  .policies-list li::before {
+    font-size: 14px;
+  }
+
+  .button-group {
+    gap: 10px;
+  }
+
+  .print-button,
+  .send-button,
+  .send-client-button,
+  .reset-button {
+    padding: 10px;
+    font-size: 13px;
+    min-height: 45px;
+  }
+
+  .submit-message {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .header-logo {
+    width: 100px;
+  }
 }
 
-.page-logo {
-  width: 100px;
-  height: auto;
+@media (max-width: 768px) {
+  .pattern-lock-container {
+    width: 100%;
+    max-width: 280px;
+    margin: 10px auto;
+  }
+
+  .pattern-canvas {
+    width: 100%;
+    height: auto;
+  }
+
+  .pattern-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
 }
 
-.form-header {
-  font-size: 28px;
-  width: 80%;
-  font-family: 'Poppins', sans-serif;
-}
+@media (max-width: 480px) {
+  .pattern-lock-container {
+    max-width: 240px;
+  }
 
-.header-container {
-  display: flex;
-  margin-bottom: 20px;
-  flex-direction: row-reverse;
-  justify-content: flex-start;
-}
-
-.header-logo {
-  border-radius: 10px;
+  .pattern-button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
 }

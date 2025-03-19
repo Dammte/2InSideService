@@ -1,7 +1,7 @@
 import './formContainer.css';
 import React, { useState, useRef } from 'react';
 import PatternLock from '../patternComponent/patternComponent';
-import PhotoCapture from '../photoCapture/photoCapture'; // Importamos el nuevo componente
+import PhotoCapture from '../photoCapture/photoCapture';
 import {
   FaUser, FaPhone, FaEnvelope, FaLock, FaMobile, FaKey,
   FaEdit, FaMoneyBillWave, FaRedo, FaPrint
@@ -63,7 +63,7 @@ function FormContainer() {
   const [pattern, setPattern] = useState<number[]>([]);
   const [isProcessing, setIsProcessing] = useState<ProcessingState>({ print: false, send: false, sendToClient: false });
   const [message, setMessage] = useState<string>('');
-  const [photos, setPhotos] = useState<string[]>([]); // Estado para las fotos en base64
+  const [photos, setPhotos] = useState<string[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -86,6 +86,30 @@ function FormContainer() {
   const handlePhotosChange = (newPhotos: string[]) => {
     setPhotos(newPhotos);
     setMessage(`Fotos actualizadas: ${newPhotos.length} capturada(s)`);
+  };
+
+  const handleResetForm = () => {
+    setFormData({
+      DNI: '',
+      Nombre: '',
+      Telefono: '',
+      AltTelefono: '',
+      Marca: '',
+      Modelo: '',
+      Imei: '',
+      Correo: '',
+      ContrasenaCorreo: '',
+      Codigo: '',
+      DetallesEstadoActual: '',
+      DetallesSoporteTecnico: '',
+      Observaciones: '',
+      Costo: '',
+      Abono: '',
+      Restante: '',
+    });
+    setPhotos([]);
+    setPattern([]);
+    setMessage('');
   };
 
   const generatePDF = (formId: string): jsPDF => {
@@ -439,7 +463,7 @@ function FormContainer() {
         },
         body: JSON.stringify({
           pdfBase64,
-          photos, // Enviar las fotos capturadas por PhotoCapture
+          photos,
           formId,
           nombre: formData.Nombre,
           dni: formData.DNI,
@@ -546,33 +570,9 @@ function FormContainer() {
     }
   };
 
-  const handleReset = () => {
-    setFormData({
-      DNI: '',
-      Nombre: '',
-      Telefono: '',
-      AltTelefono: '',
-      Marca: '',
-      Modelo: '',
-      Imei: '',
-      Correo: '',
-      ContrasenaCorreo: '',
-      Codigo: '',
-      DetallesEstadoActual: '',
-      DetallesSoporteTecnico: '',
-      Observaciones: '',
-      Costo: '',
-      Abono: '',
-      Restante: '',
-    });
-    setPhotos([]); // Reiniciar las fotos
-    setPattern([]);
-    setMessage('');
-  };
-
   return (
     <div className="form-wrapper">
-      <form className="form-container" ref={formRef}>
+      <form className="form-container" ref={formRef} onSubmit={(e) => e.preventDefault()}>
         <div className="header-container">
           <h1 className="form-header">Registro de Servicio Técnico</h1>
           <img src={logoImgSinFondo} alt="Logo" className="header-logo" />
@@ -734,7 +734,7 @@ function FormContainer() {
         <button
           type="button"
           className="reset-button"
-          onClick={handleReset}
+          onClick={handleResetForm}
           disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient}
         >
           <FaRedo style={{ marginRight: '8px' }} /> Limpiar Formulario
