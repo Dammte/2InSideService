@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { PiCameraFill, PiCameraSlashFill } from 'react-icons/pi';
-import './PhotoCapture.css';
+import './photoCapture.css';
 
 interface PhotoCaptureProps {
   onPhotosChange: (photos: string[]) => void;

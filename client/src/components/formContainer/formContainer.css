@@ -26,6 +26,12 @@
   margin-bottom: 30px;
 }
 
+.header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .header-logo {
   border-radius: 10px;
   width: 150px;
@@ -49,6 +55,33 @@
   -webkit-text-fill-color: transparent;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
   margin: 0;
+}
+
+.location-selector {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.location-selector label {
+  margin-right: 10px;
+  font-size: 14px;
+  color: #555;
+}
+
+.location-selector select {
+  padding: 5px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  color: #333;
+  cursor: pointer;
+}
+
+.location-selector select:focus {
+  outline: none;
+  border-color: #007bff;
 }
 
 .section {
@@ -198,6 +231,7 @@ textarea {
 .print-button,
 .send-button,
 .send-client-button,
+.whatsapp-button,
 .reset-button {
   position: relative;
   width: 100%;
@@ -221,27 +255,10 @@ textarea {
 .print-button svg,
 .send-button svg,
 .send-client-button svg,
+.whatsapp-button svg,
 .reset-button svg {
   margin-right: 8px;
   vertical-align: middle;
-}
-
-.print-button:hover,
-.send-button:hover,
-.send-client-button:hover,
-.reset-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.print-button:disabled,
-.send-button:disabled,
-.send-client-button:disabled,
-.reset-button:disabled {
-  background: linear-gradient(135deg, #a0a0a0, #8c8c8c);
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
 .print-button {
@@ -268,23 +285,43 @@ textarea {
   background: linear-gradient(135deg, #2ecc71, #219653);
 }
 
+.whatsapp-button {
+  background: linear-gradient(135deg, #25D366, #1eb353);
+}
+
+.whatsapp-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+}
+
 .reset-button {
   background: linear-gradient(135deg, #e74c3c, #c0392b);
   margin-top: 20px;
-  width: 100%;
-  padding: 16px;
-  font-size: 16px;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .reset-button:hover:not(:disabled) {
   background: linear-gradient(135deg, #ff6655, #d63e2e);
 }
 
-/* Mensaje de Estado */
+.print-button:hover:not(:disabled),
+.send-button:hover:not(:disabled),
+.send-client-button:hover:not(:disabled),
+.whatsapp-button:hover:not(:disabled),
+.reset-button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.print-button:disabled,
+.send-button:disabled,
+.send-client-button:disabled,
+.whatsapp-button:disabled,
+.reset-button:disabled {
+  background: linear-gradient(135deg, #a0a0a0, #8c8c8c);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .submit-message {
   text-align: center;
   margin-top: 20px;
@@ -300,7 +337,6 @@ textarea {
   background-color: #fdecea;
 }
 
-/* Diseño Responsivo */
 @media (max-width: 768px) {
   .form-wrapper {
     padding: 15px;
@@ -371,6 +407,7 @@ textarea {
   .print-button,
   .send-button,
   .send-client-button,
+  .whatsapp-button,
   .reset-button {
     padding: 12px;
     font-size: 14px;
@@ -447,6 +484,7 @@ textarea {
   .print-button,
   .send-button,
   .send-client-button,
+  .whatsapp-button,
   .reset-button {
     padding: 10px;
     font-size: 13px;

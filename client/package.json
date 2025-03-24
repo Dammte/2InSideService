@@ -10,8 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emailjs/browser": "^4.4.1",
-    "firebase": "^11.4.0",
     "jspdf": "^3.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

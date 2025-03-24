@@ -47,9 +47,9 @@
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #cfae42, #eaec6a);
+  color: #776f6f;
+  border: 3px solid rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
