@@ -26,16 +26,20 @@ transporter.verify((error, success) => {
 
 app.post('/send-pdf', async (req, res) => {
   console.log('Solicitud recibida en /send-pdf:', req.body);
-  const { pdfBase64, photos = [], formId, nombre, dni, telefono } = req.body;
+  const { internalPdfBase64, clientPdfBase64, photos = [], formId, nombre, dni, telefono, storeLocation } = req.body;
 
-  if (!pdfBase64 || !formId) {
-    console.error('Datos inválidos o faltantes:', { pdfBase64, formId });
-    return res.status(400).json({ error: 'Faltan datos requeridos (pdfBase64 o formId)' });
+  if (!internalPdfBase64 || !clientPdfBase64 || !formId) {
+    console.error('Datos inválidos o faltantes:', { internalPdfBase64, clientPdfBase64, formId });
+    return res.status(400).json({ 
+      error: 'Faltan datos requeridos (internalPdfBase64, clientPdfBase64 o formId)' 
+    });
   }
 
   try {
-    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
-    console.log('PDF convertido a buffer, tamaño:', pdfBuffer.length);
+    const internalPdfBuffer = Buffer.from(internalPdfBase64, 'base64');
+    const clientPdfBuffer = Buffer.from(clientPdfBase64, 'base64');
+    console.log('PDF interno convertido a buffer, tamaño:', internalPdfBuffer.length);
+    console.log('PDF cliente convertido a buffer, tamaño:', clientPdfBuffer.length);
 
     const photoAttachments = photos.map((photo, index) => {
       try {
@@ -54,8 +58,13 @@ app.post('/send-pdf', async (req, res) => {
 
     const attachments = [
       {
-        filename: `servicio-${formId}.pdf`,
-        content: pdfBuffer,
+        filename: `servicio-interno-${formId}.pdf`,
+        content: internalPdfBuffer,
+        contentType: 'application/pdf',
+      },
+      {
+        filename: `comprobante-cliente-${formId}.pdf`,
+        content: clientPdfBuffer,
         contentType: 'application/pdf',
       },
       ...photoAttachments,
@@ -63,12 +72,13 @@ app.post('/send-pdf', async (req, res) => {
 
     const mailOptions = {
       from: `Soporte Técnico <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER, 
+      to: process.env.EMAIL_USER,
       subject: `Registro Técnico - ID: ${formId} - ${nombre || 'Sin Nombre'} - ${dni || 'Sin DNI'}`,
-      text: `Adjuntamos tu registro de servicio técnico en formato PDF junto con las fotos del dispositivo.\n\n` +
+      text: `Adjuntamos el registro interno y el comprobante del cliente en formato PDF junto con las fotos del dispositivo.\n\n` +
             `Cliente: ${nombre || 'No especificado'}\n` +
             `DNI: ${dni || 'No especificado'}\n` +
             `Teléfono: ${telefono || 'No especificado'}\n` +
+            `Ciudad: ${storeLocation === 'medina' ? 'Medina de Pomar' : storeLocation === 'villarcayo' ? 'Villarcayo' : 'No especificada'}\n` +
             `ID Registro: ${formId}\n` +
             `Fotos adjuntas: ${photos.length}`,
       attachments,
@@ -77,12 +87,12 @@ app.post('/send-pdf', async (req, res) => {
     const info = await transporter.sendMail(mailOptions);
     console.log('Correo enviado con éxito para ID:', formId, 'Info:', info);
     return res.status(200).json({
-      message: `PDF y ${photos.length} foto(s) enviados por correo con éxito`,
+      message: `PDFs (interno y cliente) y ${photos.length} foto(s) enviados por correo con éxito`,
     });
   } catch (error) {
     console.error('Error enviando correo:', error);
     return res.status(500).json({
-      error: error.message || 'Error al enviar el PDF y fotos por correo',
+      error: error.message || 'Error al enviar los PDFs y fotos por correo',
     });
   }
 });
