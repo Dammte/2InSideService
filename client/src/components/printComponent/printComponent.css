@@ -1,0 +1,84 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  width: 250px;
+}
+
+.button.large {
+  font-size: 20px;
+  padding: 18px 28px;
+  width: 280px;
+}
+
+.button:disabled {
+  background-color: #b0b0b0;
+  cursor: not-allowed;
+}
+
+.button:hover:not(:disabled) {
+  transform: scale(1.07);
+}
+
+/* Colores de los botones */
+.blue {
+  background-color: #007bff;
+}
+
+.blue:hover {
+  background-color: #0056b3;
+}
+
+.green {
+  background-color: #28a745;
+}
+
+.green:hover {
+  background-color: #1e7e34;
+}
+
+.whatsapp {
+  background-color: #25d366;
+}
+
+.whatsapp:hover {
+  background-color: #1ebe5d;
+}
+
+.purple {
+  background-color: #6f42c1;
+}
+
+.purple:hover {
+  background-color: #563d7c;
+}
+
+.red {
+  background-color: #dc3545;
+}
+
+.red:hover {
+  background-color: #c82333;
+}

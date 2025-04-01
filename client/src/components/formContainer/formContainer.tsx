@@ -4,12 +4,15 @@ import PatternLock from '../patternComponent/patternComponent';
 import PhotoCapture from '../photoCapture/photoCapture';
 import {
   FaUser, FaPhone, FaEnvelope, FaLock, FaMobile, FaKey,
-  FaEdit, FaMoneyBillWave, FaRedo, FaPrint, FaAngleDown, FaAngleUp, FaWhatsapp
+  FaEdit, FaMoneyBillWave, FaAngleDown, FaAngleUp
 } from 'react-icons/fa';
 import jsPDF from 'jspdf';
 import logoImg from '../../assets/logo.webp';
 import logoImgSinFondo from '../../assets/logoSinFondo.webp';
 import qrcode from '../../assets/qrcode.webp';
+import PrintComponent from '../printComponent/printComponent';
+import JsBarcode from "jsbarcode";
+
 
 interface FormData {
   DNI: string;
@@ -28,6 +31,7 @@ interface FormData {
   Costo: string;
   Abono: string;
   Restante: string;
+  Fecha: string;
 }
 
 interface ProcessingState {
@@ -40,6 +44,11 @@ interface ProcessingState {
 interface SectionItem {
   label: string;
   value: string;
+}
+
+interface Notification {
+  message: string;
+  type: 'success' | 'error';
 }
 
 const servicePolicies = [
@@ -79,6 +88,7 @@ function FormContainer() {
     Costo: '',
     Abono: '',
     Restante: '',
+    Fecha: '',
   });
 
   const [pattern, setPattern] = useState<number[]>([]);
@@ -90,11 +100,41 @@ function FormContainer() {
     return savedLocation ? savedLocation : 'medina';
   });
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
+  const [isFinalized, setIsFinalized] = useState(false);
+  const [notification, setNotification] = useState<Notification | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [formId, setFormId] = useState<string>('');
 
   useEffect(() => {
     localStorage.setItem('storeLocation', storeLocation);
   }, [storeLocation]);
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
+  const handleFinalize = async () => {
+    if (!formData.Nombre || !formData.Telefono) {
+      setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
+      return;
+    }
+    const newFormId = `ST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    setFormId(newFormId);
+    setIsFinalized(true);
+
+    try {
+      await handleSendEmail(newFormId);
+      setNotification({ message: 'PDFs y fotos enviados por correo con éxito', type: 'success' });
+    } catch (error) {
+      setNotification({ message: 'Error al enviar PDFs y fotos por correo', type: 'error' });
+      console.error('Error al enviar PDFs y fotos por correo:', error);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -140,11 +180,167 @@ function FormContainer() {
       Costo: '',
       Abono: '',
       Restante: '',
+      Fecha: '',
     });
     setPhotos([]);
     setPattern([]);
     setMessage('');
     setIsPoliciesOpen(false);
+  };
+
+  const generateLabelPDF = (formData, logo = logoImg): jsPDF => {
+    const width = 62 * 2.83465;
+    const height = 28 * 2.83465;
+
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "pt",
+      format: [width, height],
+    });
+
+    const margin = 5;
+    const lineHeight = 7;
+
+    let currentY = 8;
+
+    if (logo) {
+      const logoWidth = 28;
+      const logoHeight = 14;
+      doc.addImage(logo, "PNG", margin, currentY - 3, logoWidth, logoHeight);
+
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.text("Etiqueta de Servicio Tecnico", margin + logoWidth + 8, currentY + 3);
+    } else {
+      console.log("Logo no esta disponible :(");
+    }
+
+    currentY += 15;
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.1);
+    doc.line(margin, currentY - 2, width - margin, currentY - 2);
+
+    currentY += 8;
+
+    const col1X = margin;
+    const col2X = width / 2;
+
+    doc.setFontSize(6);
+
+    if (formData.Nombre) {
+      const nombre = formData.Nombre.length > 15 ? formData.Nombre.substring(0, 13) + ".." : formData.Nombre;
+      doc.setFont("helvetica", "bold");
+      doc.text("Nombre:", col1X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(nombre, col1X + 25, currentY);
+    }
+
+    if (formData.Telefono) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Tel:", col2X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(formData.Telefono, col2X + 15, currentY);
+    }
+    currentY += lineHeight;
+
+    if (formData.Codigo) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Código:", col1X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(formData.Codigo, col1X + 25, currentY);
+    }
+
+    if (formData.Fecha) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Fecha:", col2X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(formData.Fecha, col2X + 25, currentY);
+    }
+    currentY += lineHeight;
+
+    if (formData.Modelo) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Movil:", col1X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(formData.Marca + formData.Modelo, col1X + 25, currentY);
+    }
+
+    if (formData.Patron) {
+      const patron = formData.Patron.length > 25 ? formData.Patron.substring(0, 23) + ".." : formData.Patron;
+      doc.setFont("helvetica", "bold");
+      doc.text("Patrón:", col2X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(patron, col2X + 25, currentY);
+    }
+
+    const barcodeY = height - 20;
+
+    const canvas = document.createElement("canvas");
+    const barcodeValue = formData.id || formData.Codigo || formData.Telefono;
+    JsBarcode(canvas, barcodeValue, {
+      format: "CODE128",
+      width: 1,
+      height: 10,
+      displayValue: false,
+      margin: 0
+    });
+
+    const barcodeWidth = width - (margin * 2) - 10;
+    const barcodeX = margin + 5;
+    doc.addImage(canvas.toDataURL("image/png"), "PNG", barcodeX, barcodeY, barcodeWidth, 10);
+
+    doc.setFontSize(6);
+    doc.setFont("helvetica", "normal");
+    const textY = barcodeY + 16;
+    const textWidth = doc.getStringUnitWidth(barcodeValue) * 6 / doc.internal.scaleFactor;
+    const textX = (width - textWidth) / 2;
+    doc.text(barcodeValue, textX, textY);
+
+    return doc;
+  };
+
+  const handlePrintLabel = async () => {
+    if (!formData.Nombre || !formData.Telefono) {
+      setMessage("Por favor, completa los campos obligatorios: Nombre y Teléfono");
+      return;
+    }
+
+    setIsProcessing((prev) => ({ ...prev, print: true }));
+    setMessage("Generando PDF para etiqueta...");
+
+    try {
+      const currentDate = new Date().toLocaleDateString("es-ES");
+      const updatedFormData = {
+        ...formData,
+        Fecha: formData.Fecha || currentDate,
+        id: formId,
+        Patron: pattern.length > 0 ? pattern.join('-') : '',
+        Notas: formData.Observaciones,
+      };
+
+      const doc = generateLabelPDF(updatedFormData);
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      const printWindow = window.open(pdfUrl);
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+          setTimeout(() => {
+            URL.revokeObjectURL(pdfUrl);
+          }, 1000);
+        };
+      } else {
+        throw new Error("No se pudo abrir la ventana de impresión. Verifica que no estén bloqueados los popups.");
+      }
+
+      setMessage("Etiqueta generada para impresión con éxito");
+    } catch (error: unknown) {
+      console.error("Error en impresión de etiqueta:", error);
+      setMessage(`Error al generar la etiqueta: ${(error as Error).message || "Desconocido"}`);
+    } finally {
+      setIsProcessing((prev) => ({ ...prev, print: false }));
+    }
   };
 
   const generatePDF = (formId: string): jsPDF => {
@@ -481,7 +677,6 @@ function FormContainer() {
       y = margin;
     }
 
-    // Después de la sección de "Presupuesto" y antes de "Políticas de Servicio"
     y += 8;
 
     doc.setFontSize(9);
@@ -544,8 +739,7 @@ function FormContainer() {
     return doc;
   };
 
-  const handlePrint = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  const handlePrint = async () => {
     if (!formData.Nombre || !formData.Telefono) {
       setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
       return;
@@ -553,7 +747,6 @@ function FormContainer() {
     setIsProcessing((prev) => ({ ...prev, print: true }));
     setMessage('Generando PDF para impresión...');
     try {
-      const formId = `ST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const doc = generatePDF(formId);
       const pdfBlob = doc.output('blob');
       const pdfUrl = URL.createObjectURL(pdfBlob);
@@ -574,116 +767,80 @@ function FormContainer() {
     }
   };
 
-  const handleSendEmail = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  const handleSendEmail = async (passedFormId?: string) => {
     if (!formData.Nombre || !formData.Telefono) {
-      setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
-      return;
+      throw new Error('Por favor, completa los campos obligatorios: Nombre y Teléfono');
     }
+
+    const currentFormId = passedFormId || formId;
+    if (!currentFormId) {
+      throw new Error('El ID del formulario no está definido');
+    }
+
     setIsProcessing((prev) => ({ ...prev, send: true }));
     setMessage('Enviando PDFs y fotos por correo...');
+
     try {
-      console.log('API URL cargada:', import.meta.env.VITE_API_URL);
-      
-      // Generar ID único para el formulario
-      const formId = `ST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-  
-      // Generar PDF interno
-      console.log('Generando PDF interno...');
-      const internalDoc = generateInternalPDF(formId);
+      const internalDoc = generateInternalPDF(currentFormId);
       const internalPdfBlob = internalDoc.output('blob');
-      console.log('PDF interno generado, FormID:', formId, 'Tamaño del Blob:', internalPdfBlob.size);
       const internalPdfBase64: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => {
-          console.log('FileReader onload ejecutado para PDF interno');
-          const result = reader.result;
-          if (typeof result === 'string') {
-            resolve(result.split(',')[1]);
-          } else {
-            reject(new Error('El resultado del FileReader no es una cadena para PDF interno'));
-          }
-        };
-        reader.onerror = () => {
-          console.error('Error en FileReader para PDF interno:', reader.error);
-          reject(new Error('Error al leer el Blob interno: ' + (reader.error?.message || 'Desconocido')));
-        };
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = () => reject(new Error('Error al leer el Blob interno'));
         reader.readAsDataURL(internalPdfBlob);
       });
-      console.log('PDF interno convertido a base64, longitud:', internalPdfBase64.length);
-  
-      // Generar PDF del cliente
-      console.log('Generando PDF del cliente...');
-      const clientDoc = generatePDF(formId);
+
+      const clientDoc = generatePDF(currentFormId);
       const clientPdfBlob = clientDoc.output('blob');
-      console.log('PDF cliente generado, FormID:', formId, 'Tamaño del Blob:', clientPdfBlob.size);
       const clientPdfBase64: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => {
-          console.log('FileReader onload ejecutado para PDF cliente');
-          const result = reader.result;
-          if (typeof result === 'string') {
-            resolve(result.split(',')[1]);
-          } else {
-            reject(new Error('El resultado del FileReader no es una cadena para PDF cliente'));
-          }
-        };
-        reader.onerror = () => {
-          console.error('Error en FileReader para PDF cliente:', reader.error);
-          reject(new Error('Error al leer el Blob cliente: ' + (reader.error?.message || 'Desconocido')));
-        };
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = () => reject(new Error('Error al leer el Blob cliente'));
         reader.readAsDataURL(clientPdfBlob);
       });
-      console.log('PDF cliente convertido a base64, longitud:', clientPdfBase64.length);
-  
-      // Enviar solicitud al backend
-      console.log('Enviando solicitud al backend con ambos PDFs y fotos...');
+
+      console.log('Enviando datos:', {
+        internalPdfBase64: internalPdfBase64 ? 'Presente' : 'Falta',
+        clientPdfBase64: clientPdfBase64 ? 'Presente' : 'Falta',
+        formId: currentFormId || 'Falta'
+      });
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/send-pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          internalPdfBase64, // PDF interno
-          clientPdfBase64,   // PDF del cliente
+          internalPdfBase64,
+          clientPdfBase64,
           photos,
-          formId,
+          formId: currentFormId,
           nombre: formData.Nombre,
           dni: formData.DNI,
           telefono: formData.Telefono,
-          storeLocation,     // Ciudad seleccionada
+          storeLocation,
         }),
       });
-  
-      console.log('Estado de la respuesta:', response.status, response.statusText);
-      const responseText = await response.text();
-      console.log('Respuesta cruda del backend:', responseText);
-  
+
       if (!response.ok) {
+        const responseText = await response.text();
         throw new Error(`Error del servidor: ${response.status} - ${responseText || 'Sin detalles'}`);
       }
-  
-      let result;
-      try {
-        result = JSON.parse(responseText);
-        console.log('Respuesta parseada como JSON:', result);
-      } catch (jsonError) {
-        console.error('Error al parsear JSON:', jsonError);
-        throw new Error(`Respuesta no válida del backend: ${responseText}`);
-      }
-  
-      setMessage(`PDFs (interno y cliente) y ${photos.length} foto(s) enviados por correo con éxito (ID: ${formId})`);
+
+      const result = await response.json();
+      setMessage(`PDFs y fotos enviados por correo con éxito (ID: ${currentFormId})`);
+      return result;
     } catch (error: unknown) {
       console.error('Error en envío de correo:', error);
-      const errorMessage = (error as Error).message || 'Error desconocido al enviar los PDFs y fotos';
-      setMessage(`Error al enviar los PDFs y fotos por correo: ${errorMessage}`);
+      const errorMessage = (error as Error).message || 'Error desconocido al enviar el correo';
+      setMessage(`Error al enviar PDFs y fotos por correo: ${errorMessage}`);
+      throw error;
     } finally {
       setIsProcessing((prev) => ({ ...prev, send: false }));
     }
   };
 
-  const handleSendEmailToClient = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  const handleSendEmailToClient = async () => {
     if (!formData.Nombre || !formData.Telefono) {
       setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
       return;
@@ -697,7 +854,6 @@ function FormContainer() {
     try {
       console.log('API URL cargada:', import.meta.env.VITE_API_URL);
       console.log('Generando PDF para el cliente...');
-      const formId = `ST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const doc = generatePDF(formId);
       const pdfBlob = doc.output('blob');
       console.log('PDF generado, FormID:', formId, 'Tamaño del Blob:', pdfBlob.size);
@@ -758,8 +914,7 @@ function FormContainer() {
     }
   };
 
-  const handleSendWhatsApp = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  const handleSendWhatsApp = async () => {
     if (!formData.Nombre || !formData.Telefono) {
       setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
       return;
@@ -767,17 +922,12 @@ function FormContainer() {
     setIsProcessing((prev) => ({ ...prev, sendToWhatsApp: true }));
     setMessage('Preparando mensaje para WhatsApp...');
     try {
-      const formId = `ST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      const doc = generatePDF(formId);
-      const pdfBlob = doc.output('blob');
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-
       const message = `Hola ${formData.Nombre}, aquí tienes el comprobante de tu servicio técnico (ID: ${formId}).\n` +
         `Dispositivo: ${formData.Marca} ${formData.Modelo}\n` +
         `Costo: ${formData.Costo || '0.00'} €\n` +
         `Abono: ${formData.Abono || '0.00'} €\n` +
         `Restante: ${formData.Restante || '0.00'} €\n` +
-        `Descarga tu comprobante aquí: ${pdfUrl}\n` +
+        `Si deseas el comprobante responde a este mensaje sino has caso omiso\n` +
         `Para más información, visita https://www.2sinmovil.es/`;
 
       const encodedMessage = encodeURIComponent(message);
@@ -796,6 +946,11 @@ function FormContainer() {
 
   return (
     <div className="form-wrapper">
+      {notification && (
+        <div className={`notification ${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
       <form className="form-container" ref={formRef} onSubmit={(e) => e.preventDefault()}>
         <div className="header-container">
           <div className="header-content">
@@ -951,48 +1106,25 @@ function FormContainer() {
         </section>
 
         {message && <p className={`submit-message ${message.includes('Error') ? 'error' : ''}`}>{message}</p>}
-        <div className="button-group">
+        {isFinalized ? (
+          <PrintComponent
+            isProcessing={isProcessing}
+            handlePrint={handlePrint}
+            handleSendEmail={handleSendEmail}
+            handleSendEmailToClient={handleSendEmailToClient}
+            handleSendWhatsApp={handleSendWhatsApp}
+            handleResetForm={handleResetForm}
+            handlePrintLabel={handlePrintLabel}
+          />
+        ) : (
           <button
             type="button"
-            className="print-button"
-            onClick={handlePrint}
-            disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient || isProcessing.sendToWhatsApp}
+            className="finalize-button"
+            onClick={handleFinalize}
           >
-            <FaPrint style={{ marginRight: '8px' }} /> {isProcessing.print ? 'Imprimiendo...' : 'Imprimir'}
+            Finalizar
           </button>
-          <button
-            type="button"
-            className="send-button"
-            onClick={handleSendEmail}
-            disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient || isProcessing.sendToWhatsApp}
-          >
-            <FaEnvelope style={{ marginRight: '8px' }} /> {isProcessing.send ? 'Enviando...' : 'Enviar por Correo'}
-          </button>
-          <button
-            type="button"
-            className="send-client-button"
-            onClick={handleSendEmailToClient}
-            disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient || isProcessing.sendToWhatsApp}
-          >
-            <FaEnvelope style={{ marginRight: '8px' }} /> {isProcessing.sendToClient ? 'Enviando...' : 'Enviar por Correo al Cliente'}
-          </button>
-          <button
-            type="button"
-            className="whatsapp-button"
-            onClick={handleSendWhatsApp}
-            disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient || isProcessing.sendToWhatsApp}
-          >
-            <FaWhatsapp style={{ marginRight: '8px' }} /> {isProcessing.sendToWhatsApp ? 'Preparando...' : 'Enviar por WhatsApp'}
-          </button>
-        </div>
-        <button
-          type="button"
-          className="reset-button"
-          onClick={handleResetForm}
-          disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient}
-        >
-          <FaRedo style={{ marginRight: '8px' }} /> Limpiar Formulario
-        </button>
+        )}
         <p>
           Desarrollado por{' '}
           <a href="https://github.com/Dammte" target="_blank" rel="noopener noreferrer">

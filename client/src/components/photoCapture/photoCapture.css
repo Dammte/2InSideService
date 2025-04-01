@@ -1,177 +1,428 @@
-.element-container.full-width {
-  text-align: center;
-  padding: 20px;
-}
-
-.video-wrapper {
-  border: 2px solid #ccc;
-  width: 320px;
-  height: 240px;
+.photo-capture-container {
+  max-width: 800px;
   margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  background-color: #1e1e2e;
+  color: white;
   overflow: hidden;
-  position: relative;
-  background-color: #f0f0f0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.video-wrapper video {
+.video-container {
+  position: relative;
+  background-color: #000;
+  overflow: hidden;
+}
+
+.video-container[class*="4:3"] {
+  aspect-ratio: 4/3;
+}
+
+.video-container[class*="16:9"] {
+  aspect-ratio: 16/9;
+}
+
+.video-container[class*="1:1"] {
+  aspect-ratio: 1/1;
+}
+
+.video-element {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  position: absolute;
-  top: 0;
-  left: 0;
+  transform: rotateY(180deg);
 }
 
 .camera-off-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #666;
-  background-color: #f0f0f0;
-  z-index: 1;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 10;
+}
+
+.camera-off-icon {
+  color: #6c7293;
+  margin-bottom: 10px;
+}
+
+.camera-off-text {
+  color: #6c7293;
+  font-size: 16px;
+}
+
+.camera-status {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.status-indicator, .zoom-indicator {
+  padding: 5px 8px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.recording-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #f43f5e;
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: pulse 1.5s infinite;
+}
+
+.status-text, .zoom-indicator {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.grid-line {
+  background-color: rgba(255, 255, 255, 0.5);
+  position: absolute;
+}
+
+.horizontal {
+  height: 1px;
+  width: 100%;
+}
+
+.vertical {
+  width: 1px;
+  height: 100%;
+}
+
+.top-third {
+  top: 33.33%;
+}
+
+.bottom-third {
+  top: 66.66%;
+}
+
+.left-third {
+  left: 33.33%;
+}
+
+.right-third {
+  left: 66.66%;
 }
 
 .camera-controls {
-  margin-bottom: 20px;
   display: flex;
-  justify-content: center;
-  margin-top: 10px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #191927;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.take-photo {
+.left-controls, .right-controls {
+  display: flex;
+  gap: 15px;
+}
+
+.control-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.control-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.control-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.control-btn.active {
+  background-color: #6366f1;
+  color: white;
+}
+
+.control-btn.active:hover {
+  background-color: #4f46e5;
+}
+
+.capture-btn {
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #cfae42, #eaec6a);
-  color: #776f6f;
-  border: 3px solid rgba(0, 0, 0, 0.3);
+  border: none;
+  background: linear-gradient(135deg, #f43f5e, #ec4899);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 0 6px rgba(236, 72, 153, 0.2);
 }
 
-.take-photo::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.4s ease, height 0.4s ease;
+.capture-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 8px rgba(236, 72, 153, 0.3);
 }
 
-.take-photo:hover::before {
-  width: 150px;
-  height: 150px;
-}
-
-.take-photo:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.take-photo:active {
+.capture-btn:active:not(:disabled) {
   transform: scale(0.95);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-.take-photo svg {
-  z-index: 1;
+.capture-btn.disabled {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
-.photo-preview {
-  margin-top: 20px;
+.camera-flash {
+  position: absolute;
+  inset: 0;
+  background-color: white;
+  opacity: 0.8;
+  animation: flash 0.3s ease-out;
+  pointer-events: none;
+  z-index: 20;
+}
+
+@keyframes flash {
+  0% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.settings-panel {
+  padding: 15px 20px;
+  background-color: #191927;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideDown 0.3s ease-out;
+}
+
+.settings-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #f8fafc;
+}
+
+.settings-group {
+  margin-bottom: 15px;
+}
+
+.settings-label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #cbd5e1;
+}
+
+.settings-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #2a2a3c;
+  color: white;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.settings-select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+.settings-range {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #2a2a3c;
+  border-radius: 3px;
+  outline: none;
+}
+
+.settings-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #6366f1;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-range::-webkit-slider-thumb:hover {
+  background: #4f46e5;
+  transform: scale(1.1);
+}
+
+.photos-gallery {
+  padding: 15px 20px;
+  background-color: #191927;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gallery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.gallery-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.gallery-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn.delete-btn {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.action-btn.delete-btn:hover {
+  background-color: rgba(239, 68, 68, 0.3);
+}
+
+.action-btn.download-btn {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: #6366f1;
+}
+
+.action-btn.download-btn:hover {
+  background-color: rgba(99, 102, 241, 0.3);
 }
 
 .photos-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
 .photo-item {
-  width: 100px;
-  height: 75px;
-  margin: 5px;
-  border: 1px solid #ccc;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  height: 90px;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.photo-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.photo-item.selected {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+.photo-image {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
-@media (max-width: 768px) {
-  .element-container.full-width {
-    padding: 15px;
-  }
+.photo-number {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
+}
 
-  .video-wrapper {
-    width: 280px;
-    height: 210px;
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-10px);
   }
-
-  .take-photo {
-    width: 60px;
-    height: 60px;
-  }
-
-  .take-photo:hover::before {
-    width: 120px;
-    height: 120px;
-  }
-
-  .photo-item {
-    width: 90px;
-    height: 67.5px;
+  to { 
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (max-width: 480px) {
-  .element-container.full-width {
-    padding: 10px;
-  }
-
-  .video-wrapper {
-    width: 240px;
-    height: 180px;
-  }
-
-  .camera-controls {
-    margin-bottom: 15px;
-    margin-top: 5px;
-  }
-
-  .take-photo {
-    width: 50px;
-    height: 50px;
-  }
-
-  .take-photo:hover::before {
-    width: 100px;
-    height: 100px;
-  }
-
-  .photo-preview {
-    margin-top: 15px;
-  }
-
+@media (max-width: 640px) {
   .photos-grid {
-    gap: 5px;
+    grid-template-columns: repeat(3, 1fr);
   }
-
-  .photo-item {
-    width: 80px;
+  
+  .left-controls, .right-controls {
+    gap: 8px;
+  }
+  
+  .control-btn {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .capture-btn {
+    width: 60px;
     height: 60px;
   }
 }

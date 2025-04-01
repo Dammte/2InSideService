@@ -529,3 +529,133 @@ textarea {
     font-size: 12px;
   }
 }
+
+.finalize-button {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+.finalize-button:hover {
+  background-color: #218838;
+}
+
+.finalize-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.label-print-button {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+.label-print-button:hover {
+  background-color: #218838;
+}
+
+.label-print-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  border-radius: 5px;
+  color: white;
+  font-size: 14px;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  max-width: 300px;
+}
+
+.notification.success {
+  background-color: #28a745;
+}
+
+.notification.error {
+  background-color: #dc3545;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.status-card {
+  padding: 1.5rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.status-card.selected {
+  border-color: #2196F3;
+  background-color: #f5fbff;
+}
+
+.fallas-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.falla-option {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem;
+  border-radius: 6px;
+  background: #f8f9fa;
+}
+
+.observaciones-container {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.formatting-tools {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.custom-checkbox {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  margin-right: 8px;
+  position: relative;
+}
+
+input:checked + .custom-checkbox {
+  background-color: #2196F3;
+  border-color: #2196F3;
+}
+
+input:checked + .custom-checkbox::after {
+  content: "✓";
+  color: white;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
