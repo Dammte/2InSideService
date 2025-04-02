@@ -12,6 +12,7 @@ interface ProcessingState {
 interface PrintComponentProps {
     isProcessing: ProcessingState;
     handlePrint: () => void;
+    handleSendEmail: () => void;
     handleSendEmailToClient: () => void;
     handleSendWhatsApp: () => void;
     handlePrintLabel: () => void;

@@ -30,18 +30,22 @@ function PhotoCapture({
   const [photos, setPhotos] = useState<string[]>([]);
   const [cameraActive, setCameraActive] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomSupported, setZoomSupported] = useState(false);
+  const [maxZoom, setMaxZoom] = useState(3);
+  const [minZoom, setMinZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(false);
   const [flashMode, setFlashMode] = useState(false);
+  const [torchSupported, setTorchSupported] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>('');
-  
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  
+
   const enumerateDevices = async () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -64,42 +68,48 @@ function PhotoCapture({
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
-      
+
       const constraints: MediaStreamConstraints = {
         video: {
           deviceId: selectedCamera ? { exact: selectedCamera } : undefined,
           facingMode: facingMode,
           width: { ideal: 1920 },
           height: { ideal: 1080 },
-          advanced: [{ zoom: zoomLevel }]
+          zoom: zoomLevel
         }
       };
-      
+
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
         setCameraActive(true);
-        
+
         const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
           const capabilities = videoTrack.getCapabilities();
+          
           if (capabilities.zoom) {
-            try {
-              const settings = videoTrack.getSettings();
-              const constraints = {};
-              if (capabilities.zoom) {
-                Object.assign(constraints, { zoom: zoomLevel });
-              }
-              if (capabilities.torch && flashMode) {
-                Object.assign(constraints, { torch: flashMode });
-              }
-              await videoTrack.applyConstraints(constraints);
-            } catch (error) {
-              console.error('Error al aplicar restricciones:', error);
+            setZoomSupported(true);
+            setMinZoom(capabilities.zoom.min || 1);
+            setMaxZoom(capabilities.zoom.max || 3);
+            await applyZoom(zoomLevel); 
+          } else {
+            setZoomSupported(false);
+            console.warn('Zoom no soportado por este dispositivo');
+          }
+
+          if (capabilities.torch) {
+            setTorchSupported(true);
+            if (flashMode) {
+              await videoTrack.applyConstraints({ advanced: [{ torch: true }] });
             }
+          } else {
+            setTorchSupported(false);
+            setFlashMode(false);
+            console.warn('Flash no soportado por este dispositivo');
           }
         }
       }
@@ -136,77 +146,71 @@ function PhotoCapture({
   };
 
   const increaseZoom = () => {
-    const newZoom = Math.min(zoomLevel + 0.1, 3);
+    if (!zoomSupported) return;
+    const newZoom = Math.min(zoomLevel + 0.1, maxZoom);
     setZoomLevel(newZoom);
     applyZoom(newZoom);
   };
 
   const decreaseZoom = () => {
-    const newZoom = Math.max(zoomLevel - 0.1, 1);
+    if (!zoomSupported) return;
+    const newZoom = Math.max(zoomLevel - 0.1, minZoom);
     setZoomLevel(newZoom);
     applyZoom(newZoom);
   };
 
   const applyZoom = async (zoom: number) => {
-    if (!streamRef.current) return;
-    
+    if (!streamRef.current || !zoomSupported) return;
+
     const videoTrack = streamRef.current.getVideoTracks()[0];
     if (videoTrack) {
-      const capabilities = videoTrack.getCapabilities();
-      if (capabilities.zoom) {
-        try {
-          await videoTrack.applyConstraints({ advanced: [{ zoom }] });
-        } catch (error) {
-          console.error('Error al aplicar zoom:', error);
-        }
+      try {
+        await videoTrack.applyConstraints({ advanced: [{ zoom }] });
+      } catch (error) {
+        console.error('Error al aplicar zoom:', error);
       }
     }
   };
 
   const toggleFlash = async () => {
+    if (!streamRef.current || !torchSupported) return;
+
     const newFlashMode = !flashMode;
     setFlashMode(newFlashMode);
-    
-    if (!streamRef.current) return;
-    
+
     const videoTrack = streamRef.current.getVideoTracks()[0];
     if (videoTrack) {
-      const capabilities = videoTrack.getCapabilities();
-      if (capabilities.torch) {
-        try {
-          await videoTrack.applyConstraints({ advanced: [{ torch: newFlashMode }] });
-        } catch (error) {
-          console.error('Error al controlar el flash:', error);
-        }
-      } else {
-        console.warn('El flash no está disponible en este dispositivo');
+      try {
+        await videoTrack.applyConstraints({ advanced: [{ torch: newFlashMode }] });
+      } catch (error) {
+        console.error('Error al controlar el flash:', error);
       }
     }
   };
 
   const takePhoto = () => {
     if (!videoRef.current || !canvasRef.current || !cameraActive) return;
-    
+
     const context = canvasRef.current.getContext('2d');
     if (!context) return;
-    
+
     canvasRef.current.width = videoRef.current.videoWidth;
     canvasRef.current.height = videoRef.current.videoHeight;
-    
+
     context.drawImage(videoRef.current, 0, 0);
-    
+
     if (showGrid) {
       drawGrid(context, canvasRef.current.width, canvasRef.current.height);
     }
-    
+
     const photoData = canvasRef.current.toDataURL('image/jpeg', quality);
     const base64Data = photoData.split(',')[1];
-    
+
     if (photos.length < maxPhotos) {
       const newPhotos = [...photos, base64Data];
       setPhotos(newPhotos);
       onPhotosChange(newPhotos);
-      
+
       const flashElement = document.createElement('div');
       flashElement.className = 'camera-flash';
       document.querySelector('.photo-capture-container')?.appendChild(flashElement);
@@ -219,14 +223,14 @@ function PhotoCapture({
   const drawGrid = (context: CanvasRenderingContext2D, width: number, height: number) => {
     context.strokeStyle = 'rgba(255, 255, 255, 0.5)';
     context.lineWidth = 1;
-    
+
     for (let i = 1; i < 3; i++) {
       context.beginPath();
       context.moveTo(0, height * (i / 3));
       context.lineTo(width, height * (i / 3));
       context.stroke();
     }
-    
+
     for (let i = 1; i < 3; i++) {
       context.beginPath();
       context.moveTo(width * (i / 3), 0);
@@ -256,7 +260,7 @@ function PhotoCapture({
     if (cameraActive) {
       startCamera();
     }
-    
+
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -326,7 +330,7 @@ function PhotoCapture({
             className={`control-btn flash-btn ${flashMode ? 'active' : ''}`}
             onClick={toggleFlash}
             title={flashMode ? "Apagar flash" : "Encender flash"}
-            disabled={!cameraActive}
+            disabled={!cameraActive || !torchSupported}
           >
             {flashMode ? (
               <BsLightbulbFill size={20} />
@@ -351,7 +355,7 @@ function PhotoCapture({
           <button
             className="control-btn zoom-out-btn"
             onClick={decreaseZoom}
-            disabled={!cameraActive || zoomLevel <= 1}
+            disabled={!cameraActive || !zoomSupported || zoomLevel <= minZoom}
             title="Reducir zoom"
           >
             <BsZoomOut size={20} />
@@ -360,7 +364,7 @@ function PhotoCapture({
           <button
             className="control-btn zoom-in-btn"
             onClick={increaseZoom}
-            disabled={!cameraActive || zoomLevel >= 3}
+            disabled={!cameraActive || !zoomSupported || zoomLevel >= maxZoom}
             title="Aumentar zoom"
           >
             <BsZoomIn size={20} />
@@ -411,12 +415,17 @@ function PhotoCapture({
             <label className="settings-label">Zoom ({zoomLevel.toFixed(1)}x):</label>
             <input 
               type="range" 
-              min="1" 
-              max="3" 
+              min={minZoom}
+              max={maxZoom}
               step="0.1" 
               value={zoomLevel}
-              onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
+              onChange={(e) => {
+                const newZoom = parseFloat(e.target.value);
+                setZoomLevel(newZoom);
+                applyZoom(newZoom);
+              }}
               className="settings-range"
+              disabled={!zoomSupported}
             />
           </div>
         </div>

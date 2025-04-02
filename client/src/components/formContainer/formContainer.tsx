@@ -25,6 +25,7 @@ interface FormData {
   Correo: string;
   ContrasenaCorreo: string;
   Codigo: string;
+  Patron: string;
   DetallesEstadoActual: string;
   DetallesSoporteTecnico: string;
   Observaciones: string;
@@ -82,6 +83,7 @@ function FormContainer() {
     Correo: '',
     ContrasenaCorreo: '',
     Codigo: '',
+    Patron: '',
     DetallesEstadoActual: '',
     DetallesSoporteTecnico: '',
     Observaciones: '',
@@ -174,6 +176,7 @@ function FormContainer() {
       Correo: '',
       ContrasenaCorreo: '',
       Codigo: '',
+      Patron: '',
       DetallesEstadoActual: '',
       DetallesSoporteTecnico: '',
       Observaciones: '',
@@ -188,7 +191,7 @@ function FormContainer() {
     setIsPoliciesOpen(false);
   };
 
-  const generateLabelPDF = (formData, logo = logoImg): jsPDF => {
+  const generateLabelPDF = (formData: FormData, logo = logoImg): jsPDF => {
     const width = 62 * 2.83465;
     const height = 28 * 2.83465;
 
@@ -276,7 +279,7 @@ function FormContainer() {
     const barcodeY = height - 20;
 
     const canvas = document.createElement("canvas");
-    const barcodeValue = formData.id || formData.Codigo || formData.Telefono;
+    const barcodeValue = formId || formData.Codigo || formData.Telefono;
     JsBarcode(canvas, barcodeValue, {
       format: "CODE128",
       width: 1,
