@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaPrint, FaEnvelope, FaWhatsapp, FaRedo } from 'react-icons/fa';
-import './PrintComponent.css';
+import './printComponent.css';
 
 interface ProcessingState {
     print: boolean;
