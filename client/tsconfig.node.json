@@ -1,32 +1,24 @@
 {
-  "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
-    "target": "ES2022",
-    "lib": ["ES2023"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "outDir": "./dist/node",
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
+"compilerOptions": {
+  "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+  "target": "ES2022",
+  "lib": ["ES2023"],
+  "module": "ESNext",
+  "skipLibCheck": true,
 
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    // Elimina "noEmit": true para cumplir con "references"
+  /* Bundler mode */
+  "moduleResolution": "bundler",
+  "allowImportingTsExtensions": true,
+  "isolatedModules": true,
+  "moduleDetection": "force",
+  "noEmit": true,
 
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
-  },
-  "include": [
-    "vite.config.ts",
-    "src/**/*",
-    "types/media.d.ts"
-  ]
+  /* Linting */
+  "strict": true,
+  "noUnusedLocals": true,
+  "noUnusedParameters": true,
+  "noFallthroughCasesInSwitch": true,
+  "noUncheckedSideEffectImports": true
+},
+"include": ["vite.config.ts"]
 }

@@ -12,12 +12,8 @@
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
+    "noEmit": true,
     "jsx": "react-jsx",
-    "outDir": "./dist/app",
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "emitDeclarationOnly": true, 
 
     /* Linting */
     "strict": true,
@@ -26,8 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": [
-    "src",
-    "types/media.d.ts"
-  ]
+  "include": ["src", "types/media.d.tsx"],
 }

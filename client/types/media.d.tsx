@@ -1,7 +1,7 @@
 declare global {
   interface MediaTrackConstraintSet {
-    zoom?: number | { ideal: number } | { exact: number } | { min: number; max: number };
-    torch?: boolean | { exact: boolean };
+    zoom?: number | { ideal: number } | { exact: number } | { min: number; max: number } | ConstrainDouble;
+    torch?: boolean | { exact: boolean } | ConstrainBoolean;
   }
 
   interface MediaTrackCapabilities {
@@ -16,11 +16,6 @@ declare global {
   interface MediaTrackSettings {
     zoom?: number;
     torch?: boolean;
-  }
-
-  interface MediaTrackConstraintSet {
-    zoom?: ConstrainDouble;
-    torch?: ConstrainBoolean;
   }
 }
 
