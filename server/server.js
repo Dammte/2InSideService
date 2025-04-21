@@ -105,7 +105,7 @@ app.post('/send-pdf', async (req, res) => {
     const mailOptions = {
       from: `Soporte Técnico <${process.env.EMAIL_USER}>`,
       to: [process.env.EMAIL_USER, "2sinsidemedina@gmail.com"], 
-      subject: `Registro Técnico - ID: ${formId} - ${marca} - ${modelo}  - ${nombre || 'Sin Nombre'} - ${dni || 'Sin DNI'} - ${telefono || 'Sin Teléfono'}`,
+      subject: `Registro Técnico - ID: ${formId} - ${marca} ${modelo}  - ${nombre || 'Sin Nombre'} - ${dni || 'Sin DNI'} - ${telefono || 'Sin Teléfono'}`,
       text: `Adjuntamos el registro interno, el comprobante del cliente ${ticketMessage}en formato PDF junto con las fotos del dispositivo.\n\n` +
             `Cliente: ${nombre || 'No especificado'}\n` +
             `DNI: ${dni || 'No especificado'}\n` +
