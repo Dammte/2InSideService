@@ -26,7 +26,22 @@ transporter.verify((error, success) => {
 
 app.post('/send-pdf', async (req, res) => {
   console.log('Solicitud recibida en /send-pdf:', req.body);
-  const { internalPdfBase64, clientPdfBase64, photos = [], formId, nombre, dni, telefono, storeLocation } = req.body;
+  const { 
+    internalPdfBase64, 
+    clientPdfBase64, 
+    ticketPdfBase64,
+    photos = [], 
+    formId, 
+    nombre, 
+    dni,
+    email,
+    marca,
+    modelo,
+    codigo,
+    patron,
+    telefono, 
+    storeLocation 
+  } = req.body;
 
   if (!internalPdfBase64 || !clientPdfBase64 || !formId) {
     console.error('Datos inválidos o faltantes:', { internalPdfBase64, clientPdfBase64, formId });
@@ -40,6 +55,12 @@ app.post('/send-pdf', async (req, res) => {
     const clientPdfBuffer = Buffer.from(clientPdfBase64, 'base64');
     console.log('PDF interno convertido a buffer, tamaño:', internalPdfBuffer.length);
     console.log('PDF cliente convertido a buffer, tamaño:', clientPdfBuffer.length);
+
+    let ticketPdfBuffer;
+    if (ticketPdfBase64) {
+      ticketPdfBuffer = Buffer.from(ticketPdfBase64, 'base64');
+      console.log('PDF ticket convertido a buffer, tamaño:', ticketPdfBuffer.length);
+    }
 
     const photoAttachments = photos.map((photo, index) => {
       try {
@@ -66,17 +87,33 @@ app.post('/send-pdf', async (req, res) => {
         filename: `comprobante-cliente-${formId}.pdf`,
         content: clientPdfBuffer,
         contentType: 'application/pdf',
-      },
-      ...photoAttachments,
+      }
     ];
+
+    if (ticketPdfBuffer) {
+      attachments.push({
+        filename: `ticket-servicio-${formId}.pdf`,
+        content: ticketPdfBuffer,
+        contentType: 'application/pdf',
+      });
+    }
+
+    attachments.push(...photoAttachments);
+
+    const ticketMessage = ticketPdfBuffer ? 'y ticket de servicio ' : '';
 
     const mailOptions = {
       from: `Soporte Técnico <${process.env.EMAIL_USER}>`,
       to: [process.env.EMAIL_USER, "2sinsidemedina@gmail.com"], 
-      subject: `Registro Técnico - ID: ${formId} - ${nombre || 'Sin Nombre'} - ${dni || 'Sin DNI'}`,
-      text: `Adjuntamos el registro interno y el comprobante del cliente en formato PDF junto con las fotos del dispositivo.\n\n` +
+      subject: `Registro Técnico - ID: ${formId} - ${marca} - ${modelo}  - ${nombre || 'Sin Nombre'} - ${dni || 'Sin DNI'} - ${telefono || 'Sin Teléfono'}`,
+      text: `Adjuntamos el registro interno, el comprobante del cliente ${ticketMessage}en formato PDF junto con las fotos del dispositivo.\n\n` +
             `Cliente: ${nombre || 'No especificado'}\n` +
             `DNI: ${dni || 'No especificado'}\n` +
+            `correo: ${email || 'No especificado'}\n` +
+            `marca: ${marca || 'No especificada'}\n` +
+            `modelo: ${modelo || 'No especificado'}\n` +
+            `codigo: ${codigo || 'No especificado'}\n` +
+            `patron: ${patron || 'No especificado'}\n` +
             `Teléfono: ${telefono || 'No especificado'}\n` +
             `Ciudad: ${storeLocation === 'medina' ? 'Medina de Pomar' : storeLocation === 'villarcayo' ? 'Villarcayo' : 'No especificada'}\n` +
             `ID Registro: ${formId}\n` +
@@ -86,8 +123,10 @@ app.post('/send-pdf', async (req, res) => {
 
     const info = await transporter.sendMail(mailOptions);
     console.log('Correo enviado con éxito para ID:', formId, 'Info:', info);
+    
+    const ticketResponseMessage = ticketPdfBuffer ? ', ticket ' : ' ';
     return res.status(200).json({
-      message: `PDFs (interno y cliente) y ${photos.length} foto(s) enviados por correo con éxito`,
+      message: `PDFs (interno, cliente${ticketResponseMessage}) y ${photos.length} foto(s) enviados por correo con éxito`,
     });
   } catch (error) {
     console.error('Error enviando correo:', error);
