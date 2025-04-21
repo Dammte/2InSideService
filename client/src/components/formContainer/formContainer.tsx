@@ -227,7 +227,7 @@ function FormContainer() {
     currentY += 8;
 
     const col1X = margin;
-    const col2X = width / 2 - 20;
+    const col2X = width / 2 - 30;
     const col3X = width - 85;
 
     doc.setFontSize(7);
@@ -237,7 +237,7 @@ function FormContainer() {
       doc.setFont("helvetica", "bold");
       doc.text("Nombre:", col1X, currentY);
       doc.setFont("helvetica", "normal");
-      doc.text(nombre, col1X + labelWidth, currentY);
+      doc.text(nombre, col1X + labelWidth + 2, currentY);
     }
 
     if (formData.Telefono) {
@@ -297,7 +297,7 @@ function FormContainer() {
       doc.setFont("helvetica", "bold");
       doc.text("Restante:", col3X, currentY);
       doc.setFont("helvetica", "normal");
-      doc.text(formData.Restante, col3X + labelWidth, currentY);
+      doc.text(formData.Restante, col3X + labelWidth + 5, currentY);
     }
     currentY += lineHeight;
 
@@ -822,7 +822,6 @@ function FormContainer() {
     setMessage('Enviando PDFs y fotos por correo...');
 
     try {
-      // Generar PDF interno
       const internalDoc = generateInternalPDF(currentFormId);
       const internalPdfBlob = internalDoc.output('blob');
       const internalPdfBase64: string = await new Promise((resolve, reject) => {
@@ -832,7 +831,6 @@ function FormContainer() {
         reader.readAsDataURL(internalPdfBlob);
       });
 
-      // Generar PDF cliente
       const clientDoc = generatePDF(currentFormId);
       const clientPdfBlob = clientDoc.output('blob');
       const clientPdfBase64: string = await new Promise((resolve, reject) => {
@@ -842,10 +840,8 @@ function FormContainer() {
         reader.readAsDataURL(clientPdfBlob);
       });
 
-      // Generar PDF del ticket
       const currentDate = new Date().toLocaleDateString("es-ES");
       
-      // Cálculo del valor restante si no está explícitamente definido
       let restante = '';
       if (formData.Costo && formData.Abono) {
         const costo = parseFloat(formData.Costo.replace(/[^\d.-]/g, ''));
