@@ -192,8 +192,8 @@ function FormContainer() {
   };
 
   const generateLabelPDF = (formData: FormData, logo = logoImg): jsPDF => {
-    const width = 62 * 2.83465;
-    const height = 28 * 2.83465;
+    const width = 249.45;
+    const height = 110;
 
     const doc = new jsPDF({
       orientation: "landscape",
@@ -201,24 +201,25 @@ function FormContainer() {
       format: [width, height],
     });
 
-    const margin = 5;
-    const lineHeight = 7;
+    const margin = 8;
+    const lineHeight = 10;
+    const labelWidth = 28;
 
     let currentY = 8;
 
     if (logo) {
-      const logoWidth = 28;
-      const logoHeight = 14;
+      const logoWidth = 24;
+      const logoHeight = 12;
       doc.addImage(logo, "PNG", margin, currentY - 3, logoWidth, logoHeight);
 
-      doc.setFontSize(7);
+      doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
-      doc.text("Etiqueta de Servicio Tecnico", margin + logoWidth + 8, currentY + 3);
+      doc.text("Etiqueta de Servicio Técnico", margin + logoWidth + 5, currentY + 5);
     } else {
-      console.log("Logo no esta disponible :(");
+      console.log("Logo no está disponible :(");
     }
 
-    currentY += 15;
+    currentY += 14;
     doc.setDrawColor(0);
     doc.setLineWidth(0.1);
     doc.line(margin, currentY - 2, width - margin, currentY - 2);
@@ -226,16 +227,17 @@ function FormContainer() {
     currentY += 8;
 
     const col1X = margin;
-    const col2X = width / 2;
+    const col2X = width / 2 - 20;
+    const col3X = width - 85;
 
-    doc.setFontSize(6);
+    doc.setFontSize(7);
 
     if (formData.Nombre) {
       const nombre = formData.Nombre.length > 15 ? formData.Nombre.substring(0, 13) + ".." : formData.Nombre;
       doc.setFont("helvetica", "bold");
       doc.text("Nombre:", col1X, currentY);
       doc.setFont("helvetica", "normal");
-      doc.text(nombre, col1X + 25, currentY);
+      doc.text(nombre, col1X + labelWidth, currentY);
     }
 
     if (formData.Telefono) {
@@ -244,58 +246,81 @@ function FormContainer() {
       doc.setFont("helvetica", "normal");
       doc.text(formData.Telefono, col2X + 15, currentY);
     }
+
+    if (formData.Fecha) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Fecha:", col3X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(formData.Fecha, col3X + labelWidth, currentY);
+    }
     currentY += lineHeight;
 
     if (formData.Codigo) {
       doc.setFont("helvetica", "bold");
       doc.text("Código:", col1X, currentY);
       doc.setFont("helvetica", "normal");
-      doc.text(formData.Codigo, col1X + 25, currentY);
+      doc.text(formData.Codigo, col1X + labelWidth, currentY);
     }
-
-    if (formData.Fecha) {
-      doc.setFont("helvetica", "bold");
-      doc.text("Fecha:", col2X, currentY);
-      doc.setFont("helvetica", "normal");
-      doc.text(formData.Fecha, col2X + 25, currentY);
-    }
-    currentY += lineHeight;
 
     if (formData.Modelo) {
       doc.setFont("helvetica", "bold");
-      doc.text("Movil:", col1X, currentY);
+      doc.text("Móvil:", col2X, currentY);
       doc.setFont("helvetica", "normal");
-      doc.text(formData.Marca + formData.Modelo, col1X + 25, currentY);
+      doc.text(formData.Marca + " " + formData.Modelo, col2X + labelWidth, currentY);
     }
+    currentY += lineHeight;
 
     if (formData.Patron) {
-      const patron = formData.Patron.length > 25 ? formData.Patron.substring(0, 23) + ".." : formData.Patron;
+      const patron = formData.Patron.length > 35 ? formData.Patron.substring(0, 33) + ".." : formData.Patron;
       doc.setFont("helvetica", "bold");
-      doc.text("Patrón:", col2X, currentY);
+      doc.text("Patrón:", col1X, currentY);
       doc.setFont("helvetica", "normal");
-      doc.text(patron, col2X + 25, currentY);
+      doc.text(patron, col1X + labelWidth, currentY);
+    }
+    currentY += lineHeight;
+
+    if (formData.Costo) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Costo:", col1X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(formData.Costo, col1X + labelWidth, currentY);
     }
 
-    const barcodeY = height - 20;
+    if (formData.Abono) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Abono:", col2X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(formData.Abono, col2X + labelWidth, currentY);
+    }
+
+    if (formData.Restante) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Restante:", col3X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(formData.Restante, col3X + labelWidth, currentY);
+    }
+    currentY += lineHeight;
+
+    const barcodeY = currentY + 5;
 
     const canvas = document.createElement("canvas");
     const barcodeValue = formId || formData.Codigo || formData.Telefono;
     JsBarcode(canvas, barcodeValue, {
       format: "CODE128",
       width: 1,
-      height: 10,
+      height: 15,
       displayValue: false,
       margin: 0
     });
 
     const barcodeWidth = width - (margin * 2) - 10;
     const barcodeX = margin + 5;
-    doc.addImage(canvas.toDataURL("image/png"), "PNG", barcodeX, barcodeY, barcodeWidth, 10);
+    doc.addImage(canvas.toDataURL("image/png"), "PNG", barcodeX, barcodeY, barcodeWidth, 15);
 
-    doc.setFontSize(6);
+    doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
-    const textY = barcodeY + 16;
-    const textWidth = doc.getStringUnitWidth(barcodeValue) * 6 / doc.internal.scaleFactor;
+    const textY = barcodeY + 25;
+    const textWidth = doc.getStringUnitWidth(barcodeValue) * 7 / doc.internal.scaleFactor;
     const textX = (width - textWidth) / 2;
     doc.text(barcodeValue, textX, textY);
 
@@ -313,12 +338,25 @@ function FormContainer() {
 
     try {
       const currentDate = new Date().toLocaleDateString("es-ES");
+      
+      let restante = '';
+      if (formData.Costo && formData.Abono) {
+        const costo = parseFloat(formData.Costo.replace(/[^\d.-]/g, ''));
+        const abono = parseFloat(formData.Abono.replace(/[^\d.-]/g, ''));
+        if (!isNaN(costo) && !isNaN(abono)) {
+          restante = `$${(costo - abono).toFixed(2)}`;
+        }
+      }
+      
       const updatedFormData = {
         ...formData,
         Fecha: formData.Fecha || currentDate,
         id: formId,
         Patron: pattern.length > 0 ? pattern.join('-') : '',
         Notas: formData.Observaciones,
+        Costo: formData.Costo ? (formData.Costo.startsWith('$') ? formData.Costo : `$${formData.Costo}`) : '',
+        Abono: formData.Abono ? (formData.Abono.startsWith('$') ? formData.Abono : `$${formData.Abono}`) : '',
+        Restante: formData.Restante || restante,
       };
 
       const doc = generateLabelPDF(updatedFormData);
@@ -784,6 +822,7 @@ function FormContainer() {
     setMessage('Enviando PDFs y fotos por correo...');
 
     try {
+      // Generar PDF interno
       const internalDoc = generateInternalPDF(currentFormId);
       const internalPdfBlob = internalDoc.output('blob');
       const internalPdfBase64: string = await new Promise((resolve, reject) => {
@@ -793,6 +832,7 @@ function FormContainer() {
         reader.readAsDataURL(internalPdfBlob);
       });
 
+      // Generar PDF cliente
       const clientDoc = generatePDF(currentFormId);
       const clientPdfBlob = clientDoc.output('blob');
       const clientPdfBase64: string = await new Promise((resolve, reject) => {
@@ -802,9 +842,43 @@ function FormContainer() {
         reader.readAsDataURL(clientPdfBlob);
       });
 
+      // Generar PDF del ticket
+      const currentDate = new Date().toLocaleDateString("es-ES");
+      
+      // Cálculo del valor restante si no está explícitamente definido
+      let restante = '';
+      if (formData.Costo && formData.Abono) {
+        const costo = parseFloat(formData.Costo.replace(/[^\d.-]/g, ''));
+        const abono = parseFloat(formData.Abono.replace(/[^\d.-]/g, ''));
+        if (!isNaN(costo) && !isNaN(abono)) {
+          restante = `$${(costo - abono).toFixed(2)}`;
+        }
+      }
+      
+      const updatedFormData = {
+        ...formData,
+        Fecha: formData.Fecha || currentDate,
+        id: currentFormId,
+        Patron: pattern.length > 0 ? pattern.join('-') : '',
+        Notas: formData.Observaciones,
+        Costo: formData.Costo ? (formData.Costo.startsWith('$') ? formData.Costo : `$${formData.Costo}`) : '',
+        Abono: formData.Abono ? (formData.Abono.startsWith('$') ? formData.Abono : `$${formData.Abono}`) : '',
+        Restante: formData.Restante || restante,
+      };
+      
+      const ticketDoc = generateLabelPDF(updatedFormData);
+      const ticketPdfBlob = ticketDoc.output('blob');
+      const ticketPdfBase64: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = () => reject(new Error('Error al leer el Blob del ticket'));
+        reader.readAsDataURL(ticketPdfBlob);
+      });
+
       console.log('Enviando datos:', {
         internalPdfBase64: internalPdfBase64 ? 'Presente' : 'Falta',
         clientPdfBase64: clientPdfBase64 ? 'Presente' : 'Falta',
+        ticketPdfBase64: ticketPdfBase64 ? 'Presente' : 'Falta',
         formId: currentFormId || 'Falta'
       });
 
@@ -816,10 +890,16 @@ function FormContainer() {
         body: JSON.stringify({
           internalPdfBase64,
           clientPdfBase64,
+          ticketPdfBase64,
           photos,
           formId: currentFormId,
           nombre: formData.Nombre,
           dni: formData.DNI,
+          email: formData.Correo,
+          marca: formData.Marca,
+          modelo: formData.Modelo,
+          codigo: formData.Codigo,
+          patron: pattern.length > 0 ? pattern.join('-') : '',
           telefono: formData.Telefono,
           storeLocation,
         }),
@@ -831,12 +911,12 @@ function FormContainer() {
       }
 
       const result = await response.json();
-      setMessage(`PDFs y fotos enviados por correo con éxito (ID: ${currentFormId})`);
+      setMessage(`PDFs, ticket y fotos enviados por correo con éxito (ID: ${currentFormId})`);
       return result;
     } catch (error: unknown) {
       console.error('Error en envío de correo:', error);
       const errorMessage = (error as Error).message || 'Error desconocido al enviar el correo';
-      setMessage(`Error al enviar PDFs y fotos por correo: ${errorMessage}`);
+      setMessage(`Error al enviar PDFs, ticket y fotos por correo: ${errorMessage}`);
       throw error;
     } finally {
       setIsProcessing((prev) => ({ ...prev, send: false }));

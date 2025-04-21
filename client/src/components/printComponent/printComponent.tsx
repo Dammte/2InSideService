@@ -34,7 +34,7 @@ const PrintComponent: React.FC<PrintComponentProps> = ({
                     type="button"
                     className="button blue"
                     onClick={handlePrint}
-                    disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient || isProcessing.sendToWhatsApp}
+                    disabled={isProcessing.print|| isProcessing.sendToClient || isProcessing.sendToWhatsApp}
                 >
                     <FaPrint /> {isProcessing.print ? 'Imprimiendo...' : 'Imprimir'}
                 </button>
@@ -42,7 +42,7 @@ const PrintComponent: React.FC<PrintComponentProps> = ({
                     type="button"
                     className="button green"
                     onClick={handleSendEmailToClient}
-                    disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient || isProcessing.sendToWhatsApp}
+                    disabled={isProcessing.print || isProcessing.sendToClient || isProcessing.sendToWhatsApp}
                 >
                     <FaEnvelope /> {isProcessing.sendToClient ? 'Enviando...' : 'Correo al Cliente'}
                 </button>
@@ -50,7 +50,7 @@ const PrintComponent: React.FC<PrintComponentProps> = ({
                     type="button"
                     className="button whatsapp"
                     onClick={handleSendWhatsApp}
-                    disabled={isProcessing.print || isProcessing.send || isProcessing.sendToClient || isProcessing.sendToWhatsApp}
+                    disabled={isProcessing.print || isProcessing.sendToClient || isProcessing.sendToWhatsApp}
                 >
                     <FaWhatsapp /> {isProcessing.sendToWhatsApp ? 'Preparando...' : 'WhatsApp'}
                 </button>
