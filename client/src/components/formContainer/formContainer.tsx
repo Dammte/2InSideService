@@ -189,6 +189,7 @@ function FormContainer() {
     setPattern([]);
     setMessage('');
     setIsPoliciesOpen(false);
+    setIsFinalized(false);
   };
 
   const generateLabelPDF = (formData: FormData, logo = logoImg): jsPDF => {
