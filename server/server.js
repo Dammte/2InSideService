@@ -102,9 +102,15 @@ app.post('/send-pdf', async (req, res) => {
 
     const ticketMessage = ticketPdfBuffer ? 'y ticket de servicio ' : '';
 
+    let recipients = [process.env.EMAIL_USER, "2sinsidemedina@gmail.com"];
+    
+    if (storeLocation === 'villarcayo') {
+      recipients.push("2sinsidevillarcayo@gmail.com");
+    }
+
     const mailOptions = {
       from: `Soporte Técnico <${process.env.EMAIL_USER}>`,
-      to: [process.env.EMAIL_USER, "2sinsidemedina@gmail.com"], 
+      to: recipients,
       subject: `Registro Técnico - ID: ${formId} - ${marca} ${modelo}  - ${nombre || 'Sin Nombre'} - ${dni || 'Sin DNI'} - ${telefono || 'Sin Teléfono'}`,
       text: `Adjuntamos el registro interno, el comprobante del cliente ${ticketMessage}en formato PDF junto con las fotos del dispositivo.\n\n` +
             `Cliente: ${nombre || 'No especificado'}\n` +
