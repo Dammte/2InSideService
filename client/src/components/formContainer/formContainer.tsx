@@ -1,18 +1,25 @@
-import './formContainer.css';
-import React, { useState, useRef, useEffect } from 'react';
-import PatternLock from '../patternComponent/patternComponent';
-import PhotoCapture from '../photoCapture/photoCapture';
+import "./formContainer.css";
+import React, { useState, useRef, useEffect } from "react";
+import PatternLock from "../patternComponent/patternComponent";
+import PhotoCapture from "../photoCapture/photoCapture";
 import {
-  FaUser, FaPhone, FaEnvelope, FaLock, FaMobile, FaKey,
-  FaEdit, FaMoneyBillWave, FaAngleDown, FaAngleUp
-} from 'react-icons/fa';
-import jsPDF from 'jspdf';
-import logoImg from '../../assets/logo.webp';
-import logoImgSinFondo from '../../assets/logoSinFondo.webp';
-import qrcode from '../../assets/qrcode.webp';
-import PrintComponent from '../printComponent/printComponent';
+  FaUser,
+  FaPhone,
+  FaEnvelope,
+  FaLock,
+  FaMobile,
+  FaKey,
+  FaEdit,
+  FaMoneyBillWave,
+  FaAngleDown,
+  FaAngleUp,
+} from "react-icons/fa";
+import jsPDF from "jspdf";
+import logoImg from "../../assets/logo.webp";
+import logoImgSinFondo from "../../assets/logoSinFondo.webp";
+import qrcode from "../../assets/qrcode.webp";
+import PrintComponent from "../printComponent/printComponent";
 import JsBarcode from "jsbarcode";
-
 
 interface FormData {
   DNI: string;
@@ -49,7 +56,7 @@ interface SectionItem {
 
 interface Notification {
   message: string;
-  type: 'success' | 'error';
+  type: "success" | "error";
 }
 
 const servicePolicies = [
@@ -73,42 +80,47 @@ const servicePolicies = [
 
 function FormContainer() {
   const [formData, setFormData] = useState<FormData>({
-    DNI: '',
-    Nombre: '',
-    Telefono: '',
-    AltTelefono: '',
-    Marca: '',
-    Modelo: '',
-    Imei: '',
-    Correo: '',
-    ContrasenaCorreo: '',
-    Codigo: '',
-    Patron: '',
-    DetallesEstadoActual: '',
-    DetallesSoporteTecnico: '',
-    Observaciones: '',
-    Costo: '',
-    Abono: '',
-    Restante: '',
-    Fecha: '',
+    DNI: "",
+    Nombre: "",
+    Telefono: "",
+    AltTelefono: "",
+    Marca: "",
+    Modelo: "",
+    Imei: "",
+    Correo: "",
+    ContrasenaCorreo: "",
+    Codigo: "",
+    Patron: "",
+    DetallesEstadoActual: "",
+    DetallesSoporteTecnico: "",
+    Observaciones: "",
+    Costo: "",
+    Abono: "",
+    Restante: "",
+    Fecha: "",
   });
 
   const [pattern, setPattern] = useState<number[]>([]);
-  const [isProcessing, setIsProcessing] = useState<ProcessingState>({ print: false, send: false, sendToClient: false, sendToWhatsApp: false });
-  const [message, setMessage] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState<ProcessingState>({
+    print: false,
+    send: false,
+    sendToClient: false,
+    sendToWhatsApp: false,
+  });
+  const [message, setMessage] = useState<string>("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [storeLocation, setStoreLocation] = useState<string>(() => {
-    const savedLocation = localStorage.getItem('storeLocation');
-    return savedLocation ? savedLocation : 'medina';
+    const savedLocation = localStorage.getItem("storeLocation");
+    return savedLocation ? savedLocation : "medina";
   });
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
   const [isFinalized, setIsFinalized] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const [formId, setFormId] = useState<string>('');
+  const [formId, setFormId] = useState<string>("");
 
   useEffect(() => {
-    localStorage.setItem('storeLocation', storeLocation);
+    localStorage.setItem("storeLocation", storeLocation);
   }, [storeLocation]);
 
   useEffect(() => {
@@ -122,7 +134,9 @@ function FormContainer() {
 
   const handleFinalize = async () => {
     if (!formData.Nombre || !formData.Telefono) {
-      setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
+      setMessage(
+        "Por favor, completa los campos obligatorios: Nombre y Teléfono"
+      );
       return;
     }
     const newFormId = `ST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -131,18 +145,26 @@ function FormContainer() {
 
     try {
       await handleSendEmail(newFormId);
-      setNotification({ message: 'PDFs y fotos enviados por correo con éxito', type: 'success' });
+      setNotification({
+        message: "PDFs y fotos enviados por correo con éxito",
+        type: "success",
+      });
     } catch (error) {
-      setNotification({ message: 'Error al enviar PDFs y fotos por correo', type: 'error' });
-      console.error('Error al enviar PDFs y fotos por correo:', error);
+      setNotification({
+        message: "Error al enviar PDFs y fotos por correo",
+        type: "error",
+      });
+      console.error("Error al enviar PDFs y fotos por correo:", error);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => {
       const newData = { ...prev, [name]: value };
-      if (name === 'Costo' || name === 'Abono') {
+      if (name === "Costo" || name === "Abono") {
         const costo = parseFloat(newData.Costo) || 0;
         const abono = parseFloat(newData.Abono) || 0;
         newData.Restante = (costo - abono).toFixed(2);
@@ -166,28 +188,28 @@ function FormContainer() {
 
   const handleResetForm = () => {
     setFormData({
-      DNI: '',
-      Nombre: '',
-      Telefono: '',
-      AltTelefono: '',
-      Marca: '',
-      Modelo: '',
-      Imei: '',
-      Correo: '',
-      ContrasenaCorreo: '',
-      Codigo: '',
-      Patron: '',
-      DetallesEstadoActual: '',
-      DetallesSoporteTecnico: '',
-      Observaciones: '',
-      Costo: '',
-      Abono: '',
-      Restante: '',
-      Fecha: '',
+      DNI: "",
+      Nombre: "",
+      Telefono: "",
+      AltTelefono: "",
+      Marca: "",
+      Modelo: "",
+      Imei: "",
+      Correo: "",
+      ContrasenaCorreo: "",
+      Codigo: "",
+      Patron: "",
+      DetallesEstadoActual: "",
+      DetallesSoporteTecnico: "",
+      Observaciones: "",
+      Costo: "",
+      Abono: "",
+      Restante: "",
+      Fecha: "",
     });
     setPhotos([]);
     setPattern([]);
-    setMessage('');
+    setMessage("");
     setIsPoliciesOpen(false);
     setIsFinalized(false);
   };
@@ -215,7 +237,11 @@ function FormContainer() {
 
       doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
-      doc.text("Etiqueta de Servicio Técnico", margin + logoWidth + 5, currentY + 5);
+      doc.text(
+        "Etiqueta de Servicio Técnico",
+        margin + logoWidth + 5,
+        currentY + 5
+      );
     } else {
       console.log("Logo no está disponible :(");
     }
@@ -228,13 +254,16 @@ function FormContainer() {
     currentY += 8;
 
     const col1X = margin;
-    const col2X = width / 2 - 30;
-    const col3X = width - 85;
+    const col2X = width / 2;
+    const col3X = width - margin - labelWidth;
 
     doc.setFontSize(7);
 
     if (formData.Nombre) {
-      const nombre = formData.Nombre.length > 15 ? formData.Nombre.substring(0, 13) + ".." : formData.Nombre;
+      const nombre =
+        formData.Nombre.length > 15
+          ? formData.Nombre.substring(0, 13) + ".."
+          : formData.Nombre;
       doc.setFont("helvetica", "bold");
       doc.text("Nombre:", col1X, currentY);
       doc.setFont("helvetica", "normal");
@@ -248,12 +277,6 @@ function FormContainer() {
       doc.text(formData.Telefono, col2X + 15, currentY);
     }
 
-    if (formData.Fecha) {
-      doc.setFont("helvetica", "bold");
-      doc.text("Fecha:", col3X, currentY);
-      doc.setFont("helvetica", "normal");
-      doc.text(formData.Fecha, col3X + labelWidth, currentY);
-    }
     currentY += lineHeight;
 
     if (formData.Codigo) {
@@ -261,23 +284,62 @@ function FormContainer() {
       doc.text("Código:", col1X, currentY);
       doc.setFont("helvetica", "normal");
       doc.text(formData.Codigo, col1X + labelWidth, currentY);
+    } else if (formData.Patron) {
+      const patron =
+        formData.Patron.length > 35
+          ? formData.Patron.substring(0, 33) + ".."
+          : formData.Patron;
+      doc.setFont("helvetica", "bold");
+      doc.text("Patrón:", col1X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(patron, col1X + labelWidth, currentY);
     }
 
     if (formData.Modelo) {
       doc.setFont("helvetica", "bold");
       doc.text("Móvil:", col2X, currentY);
       doc.setFont("helvetica", "normal");
-      doc.text(formData.Marca + " " + formData.Modelo, col2X + labelWidth, currentY);
+      doc.text(
+        formData.Marca + " " + formData.Modelo,
+        col2X + labelWidth,
+        currentY
+      );
     }
+
     currentY += lineHeight;
 
-    if (formData.Patron) {
-      const patron = formData.Patron.length > 35 ? formData.Patron.substring(0, 33) + ".." : formData.Patron;
+    if (formData.Fecha) {
       doc.setFont("helvetica", "bold");
-      doc.text("Patrón:", col1X, currentY);
+      doc.text("Fecha:", col1X, currentY);
       doc.setFont("helvetica", "normal");
-      doc.text(patron, col1X + labelWidth, currentY);
+      doc.text(formData.Fecha, col1X + labelWidth, currentY);
     }
+
+    if (storeLocation === "medina") {
+      doc.setFont("helvetica", "bold");
+      doc.text("Tienda:", col2X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text("Medina de Pomar", col2X + labelWidth, currentY);
+    } else {
+      doc.setFont("helvetica", "bold");
+      doc.text("Tienda:", col2X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text("Villarcayo", col2X + labelWidth, currentY);
+    }
+
+    currentY += lineHeight;
+
+    if (formData.DetallesSoporteTecnico) {
+      const soporte =
+        formData.DetallesSoporteTecnico.length > 35
+          ? formData.DetallesSoporteTecnico.substring(0, 33) + ".."
+          : formData.DetallesSoporteTecnico;
+      doc.setFont("helvetica", "bold");
+      doc.text("Soporte: ", col1X, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(soporte, col1X + 2 + labelWidth, currentY);
+    }
+
     currentY += lineHeight;
 
     if (formData.Costo) {
@@ -289,16 +351,16 @@ function FormContainer() {
 
     if (formData.Abono) {
       doc.setFont("helvetica", "bold");
-      doc.text("Abono:", col2X, currentY);
+      doc.text("Abono:", col2X - 40, currentY);
       doc.setFont("helvetica", "normal");
-      doc.text(formData.Abono, col2X + labelWidth, currentY);
+      doc.text(formData.Abono, col2X - 40 + labelWidth, currentY);
     }
 
     if (formData.Restante) {
       doc.setFont("helvetica", "bold");
-      doc.text("Restante:", col3X, currentY);
+      doc.text("Restante:", col3X - 40, currentY);
       doc.setFont("helvetica", "normal");
-      doc.text(formData.Restante, col3X + labelWidth + 5, currentY);
+      doc.text(formData.Restante, col3X - 40 + labelWidth + 5, currentY);
     }
     currentY += lineHeight;
 
@@ -311,17 +373,25 @@ function FormContainer() {
       width: 1,
       height: 15,
       displayValue: false,
-      margin: 0
+      margin: 0,
     });
 
-    const barcodeWidth = width - (margin * 2) - 10;
+    const barcodeWidth = width - margin * 2 - 10;
     const barcodeX = margin + 5;
-    doc.addImage(canvas.toDataURL("image/png"), "PNG", barcodeX, barcodeY, barcodeWidth, 15);
+    doc.addImage(
+      canvas.toDataURL("image/png"),
+      "PNG",
+      barcodeX,
+      barcodeY,
+      barcodeWidth,
+      15
+    );
 
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
     const textY = barcodeY + 25;
-    const textWidth = doc.getStringUnitWidth(barcodeValue) * 7 / doc.internal.scaleFactor;
+    const textWidth =
+      (doc.getStringUnitWidth(barcodeValue) * 7) / doc.internal.scaleFactor;
     const textX = (width - textWidth) / 2;
     doc.text(barcodeValue, textX, textY);
 
@@ -330,7 +400,9 @@ function FormContainer() {
 
   const handlePrintLabel = async () => {
     if (!formData.Nombre || !formData.Telefono) {
-      setMessage("Por favor, completa los campos obligatorios: Nombre y Teléfono");
+      setMessage(
+        "Por favor, completa los campos obligatorios: Nombre y Teléfono"
+      );
       return;
     }
 
@@ -339,24 +411,32 @@ function FormContainer() {
 
     try {
       const currentDate = new Date().toLocaleDateString("es-ES");
-      
-      let restante = '';
+
+      let restante = "";
       if (formData.Costo && formData.Abono) {
-        const costo = parseFloat(formData.Costo.replace(/[^\d.-]/g, ''));
-        const abono = parseFloat(formData.Abono.replace(/[^\d.-]/g, ''));
+        const costo = parseFloat(formData.Costo.replace(/[^\d.-]/g, ""));
+        const abono = parseFloat(formData.Abono.replace(/[^\d.-]/g, ""));
         if (!isNaN(costo) && !isNaN(abono)) {
           restante = `$${(costo - abono).toFixed(2)}`;
         }
       }
-      
+
       const updatedFormData = {
         ...formData,
         Fecha: formData.Fecha || currentDate,
         id: formId,
-        Patron: pattern.length > 0 ? pattern.join('-') : '',
+        Patron: pattern.length > 0 ? pattern.join("-") : "",
         Notas: formData.Observaciones,
-        Costo: formData.Costo ? (formData.Costo.startsWith('$') ? formData.Costo : `$${formData.Costo}`) : '',
-        Abono: formData.Abono ? (formData.Abono.startsWith('$') ? formData.Abono : `$${formData.Abono}`) : '',
+        Costo: formData.Costo
+          ? formData.Costo.startsWith("$")
+            ? formData.Costo
+            : `$${formData.Costo}`
+          : "",
+        Abono: formData.Abono
+          ? formData.Abono.startsWith("$")
+            ? formData.Abono
+            : `$${formData.Abono}`
+          : "",
         Restante: formData.Restante || restante,
       };
 
@@ -373,13 +453,19 @@ function FormContainer() {
           }, 1000);
         };
       } else {
-        throw new Error("No se pudo abrir la ventana de impresión. Verifica que no estén bloqueados los popups.");
+        throw new Error(
+          "No se pudo abrir la ventana de impresión. Verifica que no estén bloqueados los popups."
+        );
       }
 
       setMessage("Etiqueta generada para impresión con éxito");
     } catch (error: unknown) {
       console.error("Error en impresión de etiqueta:", error);
-      setMessage(`Error al generar la etiqueta: ${(error as Error).message || "Desconocido"}`);
+      setMessage(
+        `Error al generar la etiqueta: ${
+          (error as Error).message || "Desconocido"
+        }`
+      );
     } finally {
       setIsProcessing((prev) => ({ ...prev, print: false }));
     }
@@ -403,11 +489,15 @@ function FormContainer() {
     const titleX = margin + logoWidth + 10;
     doc.text("Comprobante de Servicio Técnico", titleX, y + 10);
 
-    const today = new Date().toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+    const today = new Date().toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
     doc.setFontSize(10);
     doc.setTextColor(102, 102, 102);
     doc.text(today, titleX, y + 18);
-    doc.text(`ID: ${formId}`, titleX + 60, y + 18)
+    doc.text(`ID: ${formId}`, titleX + 60, y + 18);
 
     y += logoHeight + 15;
 
@@ -432,9 +522,17 @@ function FormContainer() {
           doc.setFont("helvetica", "bold");
           doc.text(item.label, margin + 5, y);
           doc.setFont("helvetica", "normal");
-          doc.text(item.value || "No especificado", pageWidth - margin - 50, y, { align: "right" });
+          doc.text(
+            item.value || "No especificado",
+            pageWidth - margin - 50,
+            y,
+            { align: "right" }
+          );
         } else {
-          const lines = doc.splitTextToSize(item.value || "No especificado", pageWidth - margin * 2 - 10);
+          const lines = doc.splitTextToSize(
+            item.value || "No especificado",
+            pageWidth - margin * 2 - 10
+          );
           doc.text(lines, margin + 5, y);
           y += lines.length * 6;
         }
@@ -456,8 +554,12 @@ function FormContainer() {
       { label: "IMEI:", value: formData.Imei },
     ]);
 
-    section("Estado Actual", [{ label: "", value: formData.DetallesEstadoActual }]);
-    section("Soporte Técnico", [{ label: "", value: formData.DetallesSoporteTecnico }]);
+    section("Estado Actual", [
+      { label: "", value: formData.DetallesEstadoActual },
+    ]);
+    section("Soporte Técnico", [
+      { label: "", value: formData.DetallesSoporteTecnico },
+    ]);
 
     y += 4;
     doc.setFillColor(240, 240, 240);
@@ -472,9 +574,18 @@ function FormContainer() {
     y += 10;
 
     const budgetItems: SectionItem[] = [
-      { label: "Costo:", value: formData.Costo ? `${formData.Costo} €` : "0.00 €" },
-      { label: "Abono:", value: formData.Abono ? `${formData.Abono} €` : "0.00 €" },
-      { label: "Restante:", value: formData.Restante ? `${formData.Restante} €` : "0.00 €" },
+      {
+        label: "Costo:",
+        value: formData.Costo ? `${formData.Costo} €` : "0.00 €",
+      },
+      {
+        label: "Abono:",
+        value: formData.Abono ? `${formData.Abono} €` : "0.00 €",
+      },
+      {
+        label: "Restante:",
+        value: formData.Restante ? `${formData.Restante} €` : "0.00 €",
+      },
     ];
 
     budgetItems.forEach((item: SectionItem) => {
@@ -497,25 +608,41 @@ function FormContainer() {
     doc.text("Información de Recogida:", margin + 5, signatureAreaY + 8);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(80, 80, 80);
-    doc.text("Presentar este comprobante para recoger su dispositivo.", margin + 5, signatureAreaY + 15);
+    doc.text(
+      "Presentar este comprobante para recoger su dispositivo.",
+      margin + 5,
+      signatureAreaY + 15
+    );
 
     const estimatedDate = new Date();
     estimatedDate.setDate(estimatedDate.getDate() + 5);
-    const estimatedDateStr = estimatedDate.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+    const estimatedDateStr = estimatedDate.toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
     doc.setFontSize(8);
     doc.setFont("helvetica", "italic");
-    doc.text(`Fecha estimada de finalización: ${estimatedDateStr}`, margin + 5, signatureAreaY + 22);
+    doc.text(
+      `Fecha estimada de finalización: ${estimatedDateStr}`,
+      margin + 5,
+      signatureAreaY + 22
+    );
 
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(102, 102, 102);
     doc.text(
-      storeLocation === 'medina' ? "Calle Julián García Sainz de Baranda, S/N" : "Calle Obras Públicas, S/N (Junto a Bar Bilbao)",
+      storeLocation === "medina"
+        ? "Calle Julián García Sainz de Baranda, S/N"
+        : "Calle Obras Públicas, S/N (Junto a Bar Bilbao)",
       margin + 5,
       signatureAreaY + 28
     );
     doc.text(
-      storeLocation === 'medina' ? "09500 Medina de Pomar (Burgos)" : "09550 Villarcayo (Burgos)",
+      storeLocation === "medina"
+        ? "09500 Medina de Pomar (Burgos)"
+        : "09550 Villarcayo (Burgos)",
       margin + 5,
       signatureAreaY + 34
     );
@@ -541,8 +668,15 @@ function FormContainer() {
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
     doc.text(`ID: ${formId}`, margin, pageHeight - margin + 3);
-    doc.text(today, pageWidth - margin, pageHeight - margin + 3, { align: "right" });
-    doc.text("https://www.2sinmovil.es/", pageWidth / 2, pageHeight - margin + 4, { align: "center" });
+    doc.text(today, pageWidth - margin, pageHeight - margin + 3, {
+      align: "right",
+    });
+    doc.text(
+      "https://www.2sinmovil.es/",
+      pageWidth / 2,
+      pageHeight - margin + 4,
+      { align: "center" }
+    );
 
     const contactAreaY = pageHeight - margin - 25;
     doc.setFontSize(8);
@@ -550,12 +684,16 @@ function FormContainer() {
     doc.setFont("helvetica", "normal");
     doc.text("Datos de contacto:", margin + 5, contactAreaY);
     doc.text(
-      storeLocation === 'medina' ? "Teléfono: 642 37 24 81" : "Teléfono: 947 62 85 39 / 682 89 81 11",
+      storeLocation === "medina"
+        ? "Teléfono: 642 37 24 81"
+        : "Teléfono: 947 62 85 39 / 682 89 81 11",
       margin + 5,
       contactAreaY + 5
     );
     doc.text(
-      storeLocation === 'medina' ? "Email: 2sinsidemedina@gmail.com" : "Email: 2sinsidevillarcayo@gmail.com",
+      storeLocation === "medina"
+        ? "Email: 2sinsidemedina@gmail.com"
+        : "Email: 2sinsidevillarcayo@gmail.com",
       margin + 5,
       contactAreaY + 10
     );
@@ -563,7 +701,12 @@ function FormContainer() {
     const qrAreaY = pageHeight - margin - 35;
     doc.addImage(qrcode, "WEBP", pageWidth - margin - 25, qrAreaY, 20, 20);
     doc.setFontSize(6);
-    doc.text("Escanea para más información", pageWidth - margin - 15, qrAreaY + 25, { align: "center" });
+    doc.text(
+      "Escanea para más información",
+      pageWidth - margin - 15,
+      qrAreaY + 25,
+      { align: "center" }
+    );
 
     doc.addPage();
     y = margin;
@@ -582,7 +725,10 @@ function FormContainer() {
         doc.addPage();
         y = margin;
       }
-      const lines = doc.splitTextToSize("• " + policy, pageWidth - margin * 2 - 10);
+      const lines = doc.splitTextToSize(
+        "• " + policy,
+        pageWidth - margin * 2 - 10
+      );
       doc.text(lines, margin, y);
       y += lines.length * 5;
     });
@@ -595,7 +741,12 @@ function FormContainer() {
     doc.setFontSize(8);
     doc.setTextColor(153, 153, 153);
     doc.setFont("helvetica", "italic");
-    doc.text("Gracias por confiar en nuestro servicio técnico", pageWidth / 2, pageHeight - 10, { align: "center" });
+    doc.text(
+      "Gracias por confiar en nuestro servicio técnico",
+      pageWidth / 2,
+      pageHeight - 10,
+      { align: "center" }
+    );
 
     return doc;
   };
@@ -619,7 +770,11 @@ function FormContainer() {
 
     doc.text("Registro Interno de Servicio Técnico", titleX, y + 10);
 
-    const today = new Date().toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+    const today = new Date().toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
     doc.setFontSize(10);
     doc.setTextColor(102, 102, 102);
     doc.text(today, titleX, y + 18);
@@ -649,9 +804,17 @@ function FormContainer() {
           doc.setFont("helvetica", "bold");
           doc.text(item.label, margin + 5, y);
           doc.setFont("helvetica", "normal");
-          doc.text(item.value || "No especificado", pageWidth - margin - 50, y, { align: "right" });
+          doc.text(
+            item.value || "No especificado",
+            pageWidth - margin - 50,
+            y,
+            { align: "right" }
+          );
         } else {
-          const lines = doc.splitTextToSize(item.value || "No especificado", pageWidth - margin * 2 - 10);
+          const lines = doc.splitTextToSize(
+            item.value || "No especificado",
+            pageWidth - margin * 2 - 10
+          );
           doc.text(lines, margin + 5, y);
           y += lines.length * 6;
         }
@@ -674,11 +837,18 @@ function FormContainer() {
       { label: "Correo:", value: formData.Correo },
       { label: "Contraseña Correo:", value: formData.ContrasenaCorreo },
       { label: "Código:", value: formData.Codigo },
-      { label: "Patrón de Desbloqueo:", value: pattern.length > 0 ? pattern.join('-') : "No especificado" },
+      {
+        label: "Patrón de Desbloqueo:",
+        value: pattern.length > 0 ? pattern.join("-") : "No especificado",
+      },
     ]);
 
-    section("Estado Actual", [{ label: "", value: formData.DetallesEstadoActual }]);
-    section("Soporte Técnico", [{ label: "", value: formData.DetallesSoporteTecnico }]);
+    section("Estado Actual", [
+      { label: "", value: formData.DetallesEstadoActual },
+    ]);
+    section("Soporte Técnico", [
+      { label: "", value: formData.DetallesSoporteTecnico },
+    ]);
     section("Observaciones", [{ label: "", value: formData.Observaciones }]);
 
     y += 4;
@@ -694,9 +864,18 @@ function FormContainer() {
     y += 10;
 
     const budgetItems: SectionItem[] = [
-      { label: "Costo:", value: formData.Costo ? `${formData.Costo} €` : "0.00 €" },
-      { label: "Abono:", value: formData.Abono ? `${formData.Abono} €` : "0.00 €" },
-      { label: "Restante:", value: formData.Restante ? `${formData.Restante} €` : "0.00 €" },
+      {
+        label: "Costo:",
+        value: formData.Costo ? `${formData.Costo} €` : "0.00 €",
+      },
+      {
+        label: "Abono:",
+        value: formData.Abono ? `${formData.Abono} €` : "0.00 €",
+      },
+      {
+        label: "Restante:",
+        value: formData.Restante ? `${formData.Restante} €` : "0.00 €",
+      },
     ];
 
     budgetItems.forEach((item: SectionItem) => {
@@ -729,7 +908,7 @@ function FormContainer() {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(80, 80, 80);
     doc.text(
-      storeLocation === 'medina'
+      storeLocation === "medina"
         ? "Medina de Pomar: Calle Julián García Sainz de Baranda, S/N, 09500 (Burgos)"
         : "Villarcayo: Calle Obras Públicas, S/N (Junto a Bar Bilbao), 09550 (Burgos)",
       margin + 5,
@@ -737,13 +916,17 @@ function FormContainer() {
     );
     y += 6;
     doc.text(
-      storeLocation === 'medina' ? "Teléfono: 642 37 24 81" : "Teléfono: 947 62 85 39 / 682 89 81 11",
+      storeLocation === "medina"
+        ? "Teléfono: 642 37 24 81"
+        : "Teléfono: 947 62 85 39 / 682 89 81 11",
       margin + 5,
       y
     );
     y += 6;
     doc.text(
-      storeLocation === 'medina' ? "Email: 2sinsidemedina@gmail.com" : "Email: 2sinsidevillarcayo@gmail.com",
+      storeLocation === "medina"
+        ? "Email: 2sinsidemedina@gmail.com"
+        : "Email: 2sinsidevillarcayo@gmail.com",
       margin + 5,
       y
     );
@@ -763,7 +946,10 @@ function FormContainer() {
         doc.addPage();
         y = margin;
       }
-      const lines = doc.splitTextToSize("• " + policy, pageWidth - margin * 2 - 10);
+      const lines = doc.splitTextToSize(
+        "• " + policy,
+        pageWidth - margin * 2 - 10
+      );
       doc.text(lines, margin, y);
       y += lines.length * 5;
     });
@@ -776,21 +962,28 @@ function FormContainer() {
     doc.setFontSize(8);
     doc.setTextColor(153, 153, 153);
     doc.setFont("helvetica", "italic");
-    doc.text("Gracias por confiar en nuestro servicio técnico", pageWidth / 2, pageHeight - 10, { align: "center" });
+    doc.text(
+      "Gracias por confiar en nuestro servicio técnico",
+      pageWidth / 2,
+      pageHeight - 10,
+      { align: "center" }
+    );
 
     return doc;
   };
 
   const handlePrint = async () => {
     if (!formData.Nombre || !formData.Telefono) {
-      setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
+      setMessage(
+        "Por favor, completa los campos obligatorios: Nombre y Teléfono"
+      );
       return;
     }
     setIsProcessing((prev) => ({ ...prev, print: true }));
-    setMessage('Generando PDF para impresión...');
+    setMessage("Generando PDF para impresión...");
     try {
       const doc = generatePDF(formId);
-      const pdfBlob = doc.output('blob');
+      const pdfBlob = doc.output("blob");
       const pdfUrl = URL.createObjectURL(pdfBlob);
       const printWindow = window.open(pdfUrl);
       if (printWindow) {
@@ -798,12 +991,16 @@ function FormContainer() {
           printWindow.print();
         };
       } else {
-        throw new Error('No se pudo abrir la ventana de impresión');
+        throw new Error("No se pudo abrir la ventana de impresión");
       }
-      setMessage('PDF generado para impresión con éxito');
+      setMessage("PDF generado para impresión con éxito");
     } catch (error: unknown) {
-      console.error('Error en impresión:', error);
-      setMessage(`Error al generar el PDF para impresión: ${(error as Error).message || 'Desconocido'}`);
+      console.error("Error en impresión:", error);
+      setMessage(
+        `Error al generar el PDF para impresión: ${
+          (error as Error).message || "Desconocido"
+        }`
+      );
     } finally {
       setIsProcessing((prev) => ({ ...prev, print: false }));
     }
@@ -811,78 +1008,91 @@ function FormContainer() {
 
   const handleSendEmail = async (passedFormId?: string) => {
     if (!formData.Nombre || !formData.Telefono) {
-      throw new Error('Por favor, completa los campos obligatorios: Nombre y Teléfono');
+      throw new Error(
+        "Por favor, completa los campos obligatorios: Nombre y Teléfono"
+      );
     }
 
     const currentFormId = passedFormId || formId;
     if (!currentFormId) {
-      throw new Error('El ID del formulario no está definido');
+      throw new Error("El ID del formulario no está definido");
     }
 
     setIsProcessing((prev) => ({ ...prev, send: true }));
-    setMessage('Enviando PDFs y fotos por correo...');
+    setMessage("Enviando PDFs y fotos por correo...");
 
     try {
       const internalDoc = generateInternalPDF(currentFormId);
-      const internalPdfBlob = internalDoc.output('blob');
+      const internalPdfBlob = internalDoc.output("blob");
       const internalPdfBase64: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
-        reader.onerror = () => reject(new Error('Error al leer el Blob interno'));
+        reader.onload = () => resolve((reader.result as string).split(",")[1]);
+        reader.onerror = () =>
+          reject(new Error("Error al leer el Blob interno"));
         reader.readAsDataURL(internalPdfBlob);
       });
 
       const clientDoc = generatePDF(currentFormId);
-      const clientPdfBlob = clientDoc.output('blob');
+      const clientPdfBlob = clientDoc.output("blob");
       const clientPdfBase64: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
-        reader.onerror = () => reject(new Error('Error al leer el Blob cliente'));
+        reader.onload = () => resolve((reader.result as string).split(",")[1]);
+        reader.onerror = () =>
+          reject(new Error("Error al leer el Blob cliente"));
         reader.readAsDataURL(clientPdfBlob);
       });
 
       const currentDate = new Date().toLocaleDateString("es-ES");
-      
-      let restante = '';
+
+      let restante = "";
       if (formData.Costo && formData.Abono) {
-        const costo = parseFloat(formData.Costo.replace(/[^\d.-]/g, ''));
-        const abono = parseFloat(formData.Abono.replace(/[^\d.-]/g, ''));
+        const costo = parseFloat(formData.Costo.replace(/[^\d.-]/g, ""));
+        const abono = parseFloat(formData.Abono.replace(/[^\d.-]/g, ""));
         if (!isNaN(costo) && !isNaN(abono)) {
           restante = `$${(costo - abono).toFixed(2)}`;
         }
       }
-      
+
       const updatedFormData = {
         ...formData,
         Fecha: formData.Fecha || currentDate,
         id: currentFormId,
-        Patron: pattern.length > 0 ? pattern.join('-') : '',
+        Patron: pattern.length > 0 ? pattern.join("-") : "",
         Notas: formData.Observaciones,
-        Costo: formData.Costo ? (formData.Costo.startsWith('$') ? formData.Costo : `$${formData.Costo}`) : '',
-        Abono: formData.Abono ? (formData.Abono.startsWith('$') ? formData.Abono : `$${formData.Abono}`) : '',
+        Costo: formData.Costo
+          ? formData.Costo.startsWith("$")
+            ? formData.Costo
+            : `$${formData.Costo}`
+          : "",
+        Abono: formData.Abono
+          ? formData.Abono.startsWith("$")
+            ? formData.Abono
+            : `$${formData.Abono}`
+          : "",
         Restante: formData.Restante || restante,
       };
-      
+
       const ticketDoc = generateLabelPDF(updatedFormData);
-      const ticketPdfBlob = ticketDoc.output('blob');
+      const ticketPdfBlob = ticketDoc.output("blob");
       const ticketPdfBase64: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
-        reader.onerror = () => reject(new Error('Error al leer el Blob del ticket'));
+        reader.onload = () => resolve((reader.result as string).split(",")[1]);
+        reader.onerror = () =>
+          reject(new Error("Error al leer el Blob del ticket"));
         reader.readAsDataURL(ticketPdfBlob);
       });
 
-      console.log('Enviando datos:', {
-        internalPdfBase64: internalPdfBase64 ? 'Presente' : 'Falta',
-        clientPdfBase64: clientPdfBase64 ? 'Presente' : 'Falta',
-        ticketPdfBase64: ticketPdfBase64 ? 'Presente' : 'Falta',
-        formId: currentFormId || 'Falta'
+      console.log("Enviando datos:", {
+        internalPdfBase64: internalPdfBase64 ? "Presente" : "Falta",
+        clientPdfBase64: clientPdfBase64 ? "Presente" : "Falta",
+        ticketPdfBase64: ticketPdfBase64 ? "Presente" : "Falta",
+        formId: currentFormId || "Falta",
       });
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/send-pdf`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           internalPdfBase64,
@@ -896,7 +1106,7 @@ function FormContainer() {
           marca: formData.Marca,
           modelo: formData.Modelo,
           codigo: formData.Codigo,
-          patron: pattern.length > 0 ? pattern.join('-') : '',
+          patron: pattern.length > 0 ? pattern.join("-") : "",
           telefono: formData.Telefono,
           storeLocation,
         }),
@@ -904,16 +1114,25 @@ function FormContainer() {
 
       if (!response.ok) {
         const responseText = await response.text();
-        throw new Error(`Error del servidor: ${response.status} - ${responseText || 'Sin detalles'}`);
+        throw new Error(
+          `Error del servidor: ${response.status} - ${
+            responseText || "Sin detalles"
+          }`
+        );
       }
 
       const result = await response.json();
-      setMessage(`PDFs, ticket y fotos enviados por correo con éxito (ID: ${currentFormId})`);
+      setMessage(
+        `PDFs, ticket y fotos enviados por correo con éxito (ID: ${currentFormId})`
+      );
       return result;
     } catch (error: unknown) {
-      console.error('Error en envío de correo:', error);
-      const errorMessage = (error as Error).message || 'Error desconocido al enviar el correo';
-      setMessage(`Error al enviar PDFs, ticket y fotos por correo: ${errorMessage}`);
+      console.error("Error en envío de correo:", error);
+      const errorMessage =
+        (error as Error).message || "Error desconocido al enviar el correo";
+      setMessage(
+        `Error al enviar PDFs, ticket y fotos por correo: ${errorMessage}`
+      );
       throw error;
     } finally {
       setIsProcessing((prev) => ({ ...prev, send: false }));
@@ -922,73 +1141,100 @@ function FormContainer() {
 
   const handleSendEmailToClient = async () => {
     if (!formData.Nombre || !formData.Telefono) {
-      setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
+      setMessage(
+        "Por favor, completa los campos obligatorios: Nombre y Teléfono"
+      );
       return;
     }
     if (!formData.Correo) {
-      setMessage('Por favor, ingresa el correo del cliente para enviar el PDF');
+      setMessage("Por favor, ingresa el correo del cliente para enviar el PDF");
       return;
     }
     setIsProcessing((prev) => ({ ...prev, sendToClient: true }));
-    setMessage('Enviando PDF al cliente por correo...');
+    setMessage("Enviando PDF al cliente por correo...");
     try {
-      console.log('API URL cargada:', import.meta.env.VITE_API_URL);
-      console.log('Generando PDF para el cliente...');
+      console.log("API URL cargada:", import.meta.env.VITE_API_URL);
+      console.log("Generando PDF para el cliente...");
       const doc = generatePDF(formId);
-      const pdfBlob = doc.output('blob');
-      console.log('PDF generado, FormID:', formId, 'Tamaño del Blob:', pdfBlob.size);
+      const pdfBlob = doc.output("blob");
+      console.log(
+        "PDF generado, FormID:",
+        formId,
+        "Tamaño del Blob:",
+        pdfBlob.size
+      );
       const pdfBase64: string = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
-          console.log('FileReader onload ejecutado');
+          console.log("FileReader onload ejecutado");
           const result = reader.result;
-          if (typeof result === 'string') {
-            resolve(result.split(',')[1]);
+          if (typeof result === "string") {
+            resolve(result.split(",")[1]);
           } else {
-            reject(new Error('El resultado del FileReader no es una cadena'));
+            reject(new Error("El resultado del FileReader no es una cadena"));
           }
         };
         reader.onerror = () => {
-          console.error('Error en FileReader:', reader.error);
-          reject(new Error('Error al leer el Blob: ' + (reader.error?.message || 'Desconocido')));
+          console.error("Error en FileReader:", reader.error);
+          reject(
+            new Error(
+              "Error al leer el Blob: " +
+                (reader.error?.message || "Desconocido")
+            )
+          );
         };
         reader.readAsDataURL(pdfBlob);
       });
-      console.log('PDF convertido a base64, longitud:', pdfBase64.length);
-      console.log('Enviando solicitud al backend para el cliente...');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/send-pdf-to-client`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pdfBase64,
-          formId,
-          nombre: formData.Nombre,
-          dni: formData.DNI,
-          telefono: formData.Telefono,
-          email: formData.Correo,
-        }),
-      });
-      console.log('Estado de la respuesta:', response.status, response.statusText);
+      console.log("PDF convertido a base64, longitud:", pdfBase64.length);
+      console.log("Enviando solicitud al backend para el cliente...");
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/send-pdf-to-client`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            pdfBase64,
+            formId,
+            nombre: formData.Nombre,
+            dni: formData.DNI,
+            telefono: formData.Telefono,
+            email: formData.Correo,
+          }),
+        }
+      );
+      console.log(
+        "Estado de la respuesta:",
+        response.status,
+        response.statusText
+      );
       const responseText = await response.text();
-      console.log('Respuesta cruda del backend:', responseText);
+      console.log("Respuesta cruda del backend:", responseText);
       if (!response.ok) {
-        throw new Error(`Error del servidor: ${response.status} - ${responseText || 'Sin detalles'}`);
+        throw new Error(
+          `Error del servidor: ${response.status} - ${
+            responseText || "Sin detalles"
+          }`
+        );
       }
       let result;
       try {
         result = JSON.parse(responseText);
-        console.log('Respuesta parseada como JSON:', result);
+        console.log("Respuesta parseada como JSON:", result);
       } catch (jsonError) {
-        console.error('Error al parsear JSON:', jsonError);
+        console.error("Error al parsear JSON:", jsonError);
         throw new Error(`Respuesta no válida del backend: ${responseText}`);
       }
       setMessage(`PDF enviado al cliente por correo con éxito (ID: ${formId})`);
     } catch (error: unknown) {
-      console.error('Error en envío de correo al cliente:', error);
-      const errorMessage = (error as Error).message || 'Error desconocido al enviar el PDF al cliente';
-      setMessage(`Error al enviar el PDF al cliente por correo: ${errorMessage}`);
+      console.error("Error en envío de correo al cliente:", error);
+      const errorMessage =
+        (error as Error).message ||
+        "Error desconocido al enviar el PDF al cliente";
+      setMessage(
+        `Error al enviar el PDF al cliente por correo: ${errorMessage}`
+      );
     } finally {
       setIsProcessing((prev) => ({ ...prev, sendToClient: false }));
     }
@@ -996,29 +1242,36 @@ function FormContainer() {
 
   const handleSendWhatsApp = async () => {
     if (!formData.Nombre || !formData.Telefono) {
-      setMessage('Por favor, completa los campos obligatorios: Nombre y Teléfono');
+      setMessage(
+        "Por favor, completa los campos obligatorios: Nombre y Teléfono"
+      );
       return;
     }
     setIsProcessing((prev) => ({ ...prev, sendToWhatsApp: true }));
-    setMessage('Preparando mensaje para WhatsApp...');
+    setMessage("Preparando mensaje para WhatsApp...");
     try {
-      const message = `Hola ${formData.Nombre}, aquí tienes el comprobante de tu servicio técnico (ID: ${formId}).\n` +
+      const message =
+        `Hola ${formData.Nombre}, aquí tienes el comprobante de tu servicio técnico (ID: ${formId}).\n` +
         `Dispositivo: ${formData.Marca} ${formData.Modelo}\n` +
-        `Costo: ${formData.Costo || '0.00'} €\n` +
-        `Abono: ${formData.Abono || '0.00'} €\n` +
-        `Restante: ${formData.Restante || '0.00'} €\n` +
+        `Costo: ${formData.Costo || "0.00"} €\n` +
+        `Abono: ${formData.Abono || "0.00"} €\n` +
+        `Restante: ${formData.Restante || "0.00"} €\n` +
         `Si deseas el comprobante responde a este mensaje sino has caso omiso\n` +
         `Para más información, visita https://www.2sinmovil.es/`;
 
       const encodedMessage = encodeURIComponent(message);
-      const phoneNumber = formData.Telefono.replace(/\s/g, '');
+      const phoneNumber = formData.Telefono.replace(/\s/g, "");
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
-      window.open(whatsappUrl, '_blank');
+      window.open(whatsappUrl, "_blank");
       setMessage(`Mensaje preparado para WhatsApp con éxito (ID: ${formId})`);
     } catch (error: unknown) {
-      console.error('Error al preparar WhatsApp:', error);
-      setMessage(`Error al preparar el mensaje para WhatsApp: ${(error as Error).message || 'Desconocido'}`);
+      console.error("Error al preparar WhatsApp:", error);
+      setMessage(
+        `Error al preparar el mensaje para WhatsApp: ${
+          (error as Error).message || "Desconocido"
+        }`
+      );
     } finally {
       setIsProcessing((prev) => ({ ...prev, sendToWhatsApp: false }));
     }
@@ -1031,7 +1284,11 @@ function FormContainer() {
           {notification.message}
         </div>
       )}
-      <form className="form-container" ref={formRef} onSubmit={(e) => e.preventDefault()}>
+      <form
+        className="form-container"
+        ref={formRef}
+        onSubmit={(e) => e.preventDefault()}
+      >
         <div className="header-container">
           <div className="header-content">
             <h1 className="form-header">Registro de Servicio Técnico</h1>
@@ -1054,22 +1311,52 @@ function FormContainer() {
           <h2 className="section-title">Información del Cliente</h2>
           <div className="row">
             <div className="element-container">
-              <label className="input-label"><FaUser /> DNI</label>
-              <input type="text" name="DNI" value={formData.DNI} onChange={handleChange} />
+              <label className="input-label">
+                <FaUser /> DNI
+              </label>
+              <input
+                type="text"
+                name="DNI"
+                value={formData.DNI}
+                onChange={handleChange}
+              />
             </div>
             <div className="element-container">
-              <label className="input-label"><FaUser /> Nombre *</label>
-              <input type="text" name="Nombre" value={formData.Nombre} onChange={handleChange} required />
+              <label className="input-label">
+                <FaUser /> Nombre *
+              </label>
+              <input
+                type="text"
+                name="Nombre"
+                value={formData.Nombre}
+                onChange={handleChange}
+                required
+              />
             </div>
           </div>
           <div className="row">
             <div className="element-container">
-              <label className="input-label"><FaPhone /> Nº Teléfono *</label>
-              <input type="number" name="Telefono" value={formData.Telefono} onChange={handleChange} required />
+              <label className="input-label">
+                <FaPhone /> Nº Teléfono *
+              </label>
+              <input
+                type="number"
+                name="Telefono"
+                value={formData.Telefono}
+                onChange={handleChange}
+                required
+              />
             </div>
             <div className="element-container">
-              <label className="input-label"><FaPhone /> Alt. Teléfono</label>
-              <input type="number" name="AltTelefono" value={formData.AltTelefono} onChange={handleChange} />
+              <label className="input-label">
+                <FaPhone /> Alt. Teléfono
+              </label>
+              <input
+                type="number"
+                name="AltTelefono"
+                value={formData.AltTelefono}
+                onChange={handleChange}
+              />
             </div>
           </div>
         </section>
@@ -1078,38 +1365,85 @@ function FormContainer() {
           <h2 className="section-title">Información del Teléfono</h2>
           <div className="row">
             <div className="element-container">
-              <label className="input-label"><FaMobile /> Marca</label>
-              <input type="text" name="Marca" value={formData.Marca} onChange={handleChange} />
+              <label className="input-label">
+                <FaMobile /> Marca
+              </label>
+              <input
+                type="text"
+                name="Marca"
+                value={formData.Marca}
+                onChange={handleChange}
+              />
             </div>
             <div className="element-container">
-              <label className="input-label"><FaMobile /> Modelo</label>
-              <input type="text" name="Modelo" value={formData.Modelo} onChange={handleChange} />
+              <label className="input-label">
+                <FaMobile /> Modelo
+              </label>
+              <input
+                type="text"
+                name="Modelo"
+                value={formData.Modelo}
+                onChange={handleChange}
+              />
             </div>
           </div>
           <div className="row">
             <div className="element-container">
-              <label className="input-label"><FaKey /> IMEI</label>
-              <input type="number" name="Imei" value={formData.Imei} onChange={handleChange} />
+              <label className="input-label">
+                <FaKey /> IMEI
+              </label>
+              <input
+                type="number"
+                name="Imei"
+                value={formData.Imei}
+                onChange={handleChange}
+              />
             </div>
             <div className="element-container">
-              <label className="input-label"><FaEnvelope /> Correo</label>
-              <input type="email" name="Correo" value={formData.Correo} onChange={handleChange} />
+              <label className="input-label">
+                <FaEnvelope /> Correo
+              </label>
+              <input
+                type="email"
+                name="Correo"
+                value={formData.Correo}
+                onChange={handleChange}
+              />
             </div>
           </div>
           <div className="row">
             <div className="element-container">
-              <label className="input-label"><FaLock /> Contraseña Correo</label>
-              <input type="password" name="ContrasenaCorreo" value={formData.ContrasenaCorreo} onChange={handleChange} />
+              <label className="input-label">
+                <FaLock /> Contraseña Correo
+              </label>
+              <input
+                type="password"
+                name="ContrasenaCorreo"
+                value={formData.ContrasenaCorreo}
+                onChange={handleChange}
+              />
             </div>
             <div className="element-container">
-              <label className="input-label"><FaKey /> Código</label>
-              <input type="text" name="Codigo" value={formData.Codigo} onChange={handleChange} />
+              <label className="input-label">
+                <FaKey /> Código
+              </label>
+              <input
+                type="text"
+                name="Codigo"
+                value={formData.Codigo}
+                onChange={handleChange}
+              />
             </div>
           </div>
           <div className="row">
             <div className="element-container pattern-lock full-width">
-              <label className="input-label"><FaLock /> Patrón de Desbloqueo</label>
-              <PatternLock onPatternComplete={handlePatternComplete} pattern={pattern} />
+              <label className="input-label">
+                <FaLock /> Patrón de Desbloqueo
+              </label>
+              <PatternLock
+                onPatternComplete={handlePatternComplete}
+                pattern={pattern}
+              />
             </div>
           </div>
         </section>
@@ -1117,24 +1451,42 @@ function FormContainer() {
         <section className="section current-status">
           <h2 className="section-title">Estado Actual</h2>
           <div className="element-container full-width">
-            <label className="input-label"><FaEdit /> Detalles</label>
-            <textarea name="DetallesEstadoActual" value={formData.DetallesEstadoActual} onChange={handleChange} />
+            <label className="input-label">
+              <FaEdit /> Detalles
+            </label>
+            <textarea
+              name="DetallesEstadoActual"
+              value={formData.DetallesEstadoActual}
+              onChange={handleChange}
+            />
           </div>
         </section>
 
         <section className="section technical-support">
           <h2 className="section-title">Soporte Técnico</h2>
           <div className="element-container full-width">
-            <label className="input-label"><FaEdit /> Detalles</label>
-            <textarea name="DetallesSoporteTecnico" value={formData.DetallesSoporteTecnico} onChange={handleChange} />
+            <label className="input-label">
+              <FaEdit /> Detalles
+            </label>
+            <textarea
+              name="DetallesSoporteTecnico"
+              value={formData.DetallesSoporteTecnico}
+              onChange={handleChange}
+            />
           </div>
         </section>
 
         <section className="section observations">
           <h2 className="section-title">Observaciones</h2>
           <div className="element-container full-width">
-            <label className="input-label"><FaEdit /> Observaciones</label>
-            <textarea name="Observaciones" value={formData.Observaciones} onChange={handleChange} />
+            <label className="input-label">
+              <FaEdit /> Observaciones
+            </label>
+            <textarea
+              name="Observaciones"
+              value={formData.Observaciones}
+              onChange={handleChange}
+            />
           </div>
         </section>
 
@@ -1147,18 +1499,41 @@ function FormContainer() {
           <h2 className="section-title">Presupuesto</h2>
           <div className="row">
             <div className="element-container">
-              <label className="input-label"><FaMoneyBillWave /> Costo</label>
-              <input type="number" name="Costo" value={formData.Costo} onChange={handleChange} step="0.01" />
+              <label className="input-label">
+                <FaMoneyBillWave /> Costo
+              </label>
+              <input
+                type="number"
+                name="Costo"
+                value={formData.Costo}
+                onChange={handleChange}
+                step="0.01"
+              />
             </div>
             <div className="element-container">
-              <label className="input-label"><FaMoneyBillWave /> Abono</label>
-              <input type="number" name="Abono" value={formData.Abono} onChange={handleChange} step="0.01" />
+              <label className="input-label">
+                <FaMoneyBillWave /> Abono
+              </label>
+              <input
+                type="number"
+                name="Abono"
+                value={formData.Abono}
+                onChange={handleChange}
+                step="0.01"
+              />
             </div>
           </div>
           <div className="row">
             <div className="element-container">
-              <label className="input-label"><FaMoneyBillWave /> Restante</label>
-              <input type="text" name="Restante" value={formData.Restante} readOnly />
+              <label className="input-label">
+                <FaMoneyBillWave /> Restante
+              </label>
+              <input
+                type="text"
+                name="Restante"
+                value={formData.Restante}
+                readOnly
+              />
             </div>
           </div>
         </section>
@@ -1185,7 +1560,15 @@ function FormContainer() {
           )}
         </section>
 
-        {message && <p className={`submit-message ${message.includes('Error') ? 'error' : ''}`}>{message}</p>}
+        {message && (
+          <p
+            className={`submit-message ${
+              message.includes("Error") ? "error" : ""
+            }`}
+          >
+            {message}
+          </p>
+        )}
         {isFinalized ? (
           <PrintComponent
             isProcessing={isProcessing}
@@ -1206,8 +1589,12 @@ function FormContainer() {
           </button>
         )}
         <p>
-          Desarrollado por{' '}
-          <a href="https://github.com/Dammte" target="_blank" rel="noopener noreferrer">
+          Desarrollado por{" "}
+          <a
+            href="https://github.com/Dammte"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Daniel Jimenez
           </a>
         </p>
