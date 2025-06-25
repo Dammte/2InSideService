@@ -5,10 +5,38 @@ require('dotenv').config();
 
 const app = express();
 
-app.use(cors());
+const corsOptions = {
+  origin: [
+    'https://2insideservice.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://www.2insideservice.vercel.app'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+
+app.use(cors(corsOptions));
+
+// Middleware adicional para manejar preflight requests
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 app.use(express.json({ limit: '10mb' }));
 
-const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransporter({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
@@ -129,7 +157,7 @@ app.post('/send-pdf', async (req, res) => {
 
     const info = await transporter.sendMail(mailOptions);
     console.log('Correo enviado con éxito para ID:', formId, 'Info:', info);
-    
+
     const ticketResponseMessage = ticketPdfBuffer ? ', ticket ' : ' ';
     return res.status(200).json({
       message: `PDFs (interno, cliente${ticketResponseMessage}) y ${photos.length} foto(s) enviados por correo con éxito`,
