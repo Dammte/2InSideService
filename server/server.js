@@ -1,42 +1,14 @@
-const express = require('express');
+const express = require('express');More actions
 const nodemailer = require('nodemailer');
 const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 
-const corsOptions = {
-  origin: [
-    'https://2insideservice.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'https://www.2insideservice.vercel.app'
-  ],
-  credentials: true,
-  optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-};
-
-app.use(cors(corsOptions));
-
-// Middleware adicional para manejar preflight requests
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
-
+app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
@@ -130,15 +102,10 @@ app.post('/send-pdf', async (req, res) => {
 
     const ticketMessage = ticketPdfBuffer ? 'y ticket de servicio ' : '';
 
-    let recipients = [process.env.EMAIL_USER, "2sinsidemedina@gmail.com"];
-    
-    if (storeLocation === 'villarcayo') {
-      recipients.push("2sinsidevillarcayo@gmail.com");
-    }
-
     const mailOptions = {
       from: `Soporte Técnico <${process.env.EMAIL_USER}>`,
-      to: recipients,
+      to: [process.env.EMAIL_USER, "2sinsidemedina@gmail.com"], 
+      subject: `Registro Técnico - ID: ${formId} - ${marca} - ${modelo}  - ${nombre || 'Sin Nombre'} - ${dni || 'Sin DNI'} - ${telefono || 'Sin Teléfono'}`,
       subject: `Registro Técnico - ID: ${formId} - ${marca} ${modelo}  - ${nombre || 'Sin Nombre'} - ${dni || 'Sin DNI'} - ${telefono || 'Sin Teléfono'}`,
       text: `Adjuntamos el registro interno, el comprobante del cliente ${ticketMessage}en formato PDF junto con las fotos del dispositivo.\n\n` +
             `Cliente: ${nombre || 'No especificado'}\n` +
